@@ -68,6 +68,7 @@ class VariantPosition:
         1. contamination that doesn't look like the HET ALT allele: we expect lower HET alt allele frequency
         2. contamination that doesn't look like the HOM ALT allele: we expect High HET alt allele frequency
         3. contamination that looks like the ALT allele: we expect higher alt allele frequency
+        4. contamination being called as ALT
 
         :param float contam_level: hypothesized contamination level
         :return: log probability of a heterozygous variant
@@ -77,6 +78,7 @@ class VariantPosition:
             (1 - contam_level) / 2,  # low AF in HET ALT because of contam
             (1 - contam_level),  # this is when a HOM being called as HET because of contam
             (0.5 + contam_level),  # this is when contam looks like ALT
+            contam_level, # this is when the contam is being called as het
         ]
         max_log_prob = max(
             binom.logpmf(
