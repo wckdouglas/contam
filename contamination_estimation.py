@@ -9,6 +9,7 @@ from scipy.stats import binom
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
+CONTAMINATION_RANGE = (0, 0.4)
 
 class Genotype(Enum):
     """
@@ -77,7 +78,7 @@ class VariantPosition:
         possibe_expected_alt_fraction = [
             (1 - contam_level) / 2,  # low AF in HET ALT because of contam
             (1 - contam_level),  # this is when a HOM being called as HET because of contam
-            (0.5 + contam_level),  # this is when contam looks like ALT
+            (0.5 + contam_level / 2),  # this is when contam looks like ALT
             contam_level, # this is when the contam is being called as het
         ]
         max_log_prob = max(
@@ -118,7 +119,7 @@ def estimate_contamination(
     :return: a dictionary of contamination level and it's log likeliehood value
     :rtype: dicct[float, float]
     """
-    possible_contamination_level = np.arange(500) / 1000
+    possible_contamination_level = np.arange(CONTAMINATION_RANGE[0], CONTAMINATION_RANGE[1], 0.001)
     result = {}
 
     for contam_level in possible_contamination_level:
