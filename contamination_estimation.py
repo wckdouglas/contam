@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-from pydantic import conint, validator, validate_arguments
+from pydantic import conint, validator, validate_arguments, FilePath
 from locus_lib_bio.formats.vcf.reader import Reader
 import pandas as pd
 
