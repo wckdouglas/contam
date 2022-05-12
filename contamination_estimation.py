@@ -3,7 +3,10 @@ from __future__ import annotations
 from enum import Enum
 
 import numpy as np
-from pydantic import conint, validator
+from pydantic import conint, validator, validate_arguments
+from locus_lib_bio.formats.vcf.reader import Reader
+import pandas as pd
+
 from pydantic.dataclasses import dataclass
 from scipy.stats import binom
 
@@ -144,3 +147,37 @@ def maximum_likelihood_contamination(
     likelihoods: dict[float, float] = estimate_contamination(variant_positions)
     sorted_likelihoods: list[tuple[float, float]] = sorted(likelihoods.items(), key=lambda k: k[1])  # ascending sort
     return sorted_likelihoods[-1][0]  # the key of the last item is the max likelihood
+
+
+
+
+@validate_arguments
+def read_vcf(vcf_file: FilePath):
+    rows = []
+    with Reader(vcf_file.as_posix()) as vcf:
+        for rec in vcf:
+            total_depth = sum(rec.genos[0].AD)
+            if total_depth > 0:
+                ab=rec.genos[0].AD[1] / total_depth
+            elif rec.genos[0].GT==(1,1):
+                ab=1
+            
+            mut_type = "snv" if len(rec.alleles[1]) == len(rec.alleles[0]) else "indel"
+                
+            row = dict(
+                chrom=rec.chrom,
+                start=rec.start,
+                stop=rec.stop,
+                alleles=rec.alleles,
+                vcf_filter=rec.filter,
+                gt=rec.genos[0].GT,
+                depth=rec.genos[0].AD,
+                ab = ab,
+                vaf = rec.genos[0].AD[1]/rec.info['DP'],
+                total_depth = rec.info['DP'],
+                mut_type = mut_type
+            )    
+            rows.append(row)
+
+    if len(rows) > 0:
+        return pd.DataFrame(rows).assign(sample_name=rec.genos[0].sample)
