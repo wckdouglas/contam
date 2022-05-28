@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Optional
 
 import numpy as np
-from pydantic import conint, validator, validate_arguments, FilePath
-from locus_lib_bio.formats.vcf.reader import Reader
-import pandas as pd
-
+import pysam
+from pydantic import FilePath, conint, validate_arguments, validator
 from pydantic.dataclasses import dataclass
 from scipy.stats import binom
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
 CONTAMINATION_RANGE = (0, 0.4)
+
 
 class Genotype(Enum):
     """
@@ -21,6 +21,15 @@ class Genotype(Enum):
 
     HET = "HET"  # heterozygous
     HOM = "HOM"  # homozygous
+
+
+class VariantType(Enum):
+    """
+    enum for variant type of the variant
+    """
+
+    SNV = "SNV"
+    INDEL = "INDEL"
 
 
 @dataclass
@@ -35,7 +44,8 @@ class VariantPosition:
 
     total_depth: conint(ge=0)  # type: ignore
     alt_depth: conint(ge=0)  # type: ignore
-    variant_type: Genotype
+    genotype: Genotype
+    variant_type: Optional[VariantType] = None
 
     @validator("alt_depth")
     def depth_validation(cls, v, values, **kwargs):
@@ -81,8 +91,8 @@ class VariantPosition:
         possibe_expected_alt_fraction = [
             (1 - contam_level) / 2,  # low AF in HET ALT because of contam
             (1 - contam_level),  # this is when a HOM being called as HET because of contam
-            (0.5 + contam_level / 2),  # this is when contam looks like ALT
-            contam_level, # this is when the contam is being called as het
+            (0.5 + contam_level),  # this is when contam looks like ALT
+            contam_level,  # this is when the contam is being called as het
         ]
         max_log_prob = max(
             binom.logpmf(
@@ -106,7 +116,7 @@ class VariantPosition:
         if not (0 <= contam_level < 1):
             raise ValueError(f"Contamination level must be between 0 and 1: {contam_level}")
 
-        estimator = self.homozygous_log_prob if self.variant_type == Genotype.HOM else self.heterozygous_log_prob
+        estimator = self.homozygous_log_prob if self.genotype == Genotype.HOM else self.heterozygous_log_prob
 
         return estimator(contam_level)
 
@@ -149,35 +159,33 @@ def maximum_likelihood_contamination(
     return sorted_likelihoods[-1][0]  # the key of the last item is the max likelihood
 
 
-
-
 @validate_arguments
-def read_vcf(vcf_file: FilePath):
-    rows = []
-    with Reader(vcf_file.as_posix()) as vcf:
-        for rec in vcf:
-            total_depth = sum(rec.genos[0].AD)
-            if total_depth > 0:
-                ab=rec.genos[0].AD[1] / total_depth
-            elif rec.genos[0].GT==(1,1):
-                ab=1
-            
-            mut_type = "snv" if len(rec.alleles[1]) == len(rec.alleles[0]) else "indel"
-                
-            row = dict(
-                chrom=rec.chrom,
-                start=rec.start,
-                stop=rec.stop,
-                alleles=rec.alleles,
-                vcf_filter=rec.filter,
-                gt=rec.genos[0].GT,
-                depth=rec.genos[0].AD,
-                ab = ab,
-                vaf = rec.genos[0].AD[1]/rec.info['DP'],
-                total_depth = rec.info['DP'],
-                mut_type = mut_type
-            )    
-            rows.append(row)
+def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) -> float:
+    """
+    estimate contamination level of a vcf file
 
-    if len(rows) > 0:
-        return pd.DataFrame(rows).assign(sample_name=rec.genos[0].sample)
+    :param Path vcf_file: a vcf file for a sample
+    :return: contamination level
+    :rtype: float
+    """
+    variants = []
+    with pysam.VariantFile(vcf_file) as vcf:
+        for variant in vcf:
+            if "PASS" in variant.filter or len(variant.filter) == 0:
+                total_depth = variant.samples[0]["DP"]
+                variant_depth = variant.samples[0]["AD"][1]
+                variant_type = (
+                    VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL
+                )
+                gt_field = variant.samples[0]["GT"]  # e.g. (0, 1)
+                genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM
+
+                variants.append(
+                    VariantPosition(
+                        total_depth=total_depth, alt_depth=variant_depth, genotype=genotype, variant_type=variant_type
+                    )
+                )
+
+    if snv_only:
+        variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
+    return maximum_likelihood_contamination(variants)
