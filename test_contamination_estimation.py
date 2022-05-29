@@ -39,6 +39,14 @@ def test_variant_position(test_case, total_depth, alt_depth, variant_type, conta
     assert np.isclose(vp.log_contam_probability(contam_level), expect_log_prob, rtol=1e-4), f"Failed {test_case}"
 
 
+def test_variant_position_exception():
+    """
+    test function
+    """
+    with pytest.raises(ValueError, match="total_depth must be > alt_depth"):
+        vp = VariantPosition(10, 11, "HET")
+
+
 def test_estimate_contamination():
     """
     test function
