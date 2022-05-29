@@ -22,7 +22,7 @@ from contamination_estimation import (
         ("HET 10% contam (0.0)", 100, 40, "HET", 0.0, -4.52415),
         ("HET 10% contam (0.1)", 100, 40, "HET", 0.1, -3.01996),
         ("HET 10% contam looks like ALT (0.0)", 100, 60, "HET", 0.0, -4.52415),
-        ("HET 10% contam looks like ALT (0.1)", 100, 60, "HET", 0.1, -3.01996),
+        ("HET 10% contam looks like ALT (0.1)", 100, 60, "HET", 0.1, -2.51060),
         ("HET 10% contam a HOM ALT (0.1)", 100, 90, "HET", 0.1, -2.025973),
         ("HET 10% contam a HOM ALT (0.1)", 100, 90, "HET", 0.0, -38.83239),
         ("HOM no contam (0.1)", 100, 100, "HOM", 0.1, -10.536051),
