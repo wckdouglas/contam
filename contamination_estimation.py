@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from enum import Enum
 from typing import Optional
 
@@ -8,6 +9,8 @@ import pysam
 from pydantic import FilePath, conint, validate_arguments, validator
 from pydantic.dataclasses import dataclass
 from scipy.stats import binom
+
+logging.basicConfig(level=logging.INFO)
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
@@ -48,7 +51,7 @@ class VariantPosition:
     variant_type: Optional[VariantType] = None
 
     @validator("alt_depth")
-    def depth_validation(cls, v, values, **kwargs):
+    def depth_validation(cls, v, values, **kwargs):  # type: ignore
         """
         an extra validation to ensure that the alt_depth is less than the total_depth
 
@@ -188,4 +191,5 @@ def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) 
 
     if snv_only:
         variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
+    logging.info(f"Processing {len(variants)} variants")
     return maximum_likelihood_contamination(variants)
