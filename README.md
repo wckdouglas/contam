@@ -18,6 +18,6 @@ For a heterozygous variant, the expected variant-allele-frequency can either be:
 1. $ (1 - cl) / 2 $, when low alternate allele frequency because of the contamination
 2. $ (1 - cl) $, when a homozygous variant being called as heterozygous because of the contamination
 3. $ (0.5 + cl) $, when the contamination looks like alternate allele, such that the alternate allele frequency is higher than expected
-4. $ cl $, the contam is being called as HET variant
+4. $ cl $, when the contam is being called as HET variant
 
 We will evaluate all these cases and pick the highest probability event when summing the likelihoods for the given contamination level.
