@@ -35,8 +35,13 @@ jobs:
 
       - name: Unit test
         run: |
-          poetry run pytest -l  -rPap -vvv -p no:warnings
+          poetry run coverage run -m pytest -l  -rPap -vvv -p no:warnings 
+          poetry run coverage xml
         
+      - name: codecov
+        run: |
+          bash <(curl -s https://codecov.io/bash)
+
       - name: type check
         run: |
           poetry run mypy .
