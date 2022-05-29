@@ -22,3 +22,15 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
 dev = ["pytest", "mypy"]
+
+
+
+[tool.mypy]
+plugins = "numpy.typing.mypy_plugin"
+
+[[tool.mypy.overrides]]
+module = [
+    "pysam.*",
+    "scipy.*"
+]
+ignore_missing_imports = true

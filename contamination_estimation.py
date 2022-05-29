@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import logging
 from enum import Enum
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import pysam
 from pydantic import FilePath, conint, validate_arguments, validator
-from pydantic.dataclasses import dataclass
+
+if TYPE_CHECKING:
+    from dataclasses import dataclass
+else:
+    from pydantic.dataclasses import dataclass
+
 from scipy.stats import binom
 
 logging.basicConfig(level=logging.INFO)
@@ -35,7 +40,7 @@ class VariantType(Enum):
     INDEL = "INDEL"
 
 
-@dataclass
+@dataclass(frozen=True)
 class VariantPosition:
     """
     data class for a variant
@@ -133,7 +138,7 @@ def estimate_contamination(
 
     :param List[VariantPosition] variant_positions: a list of VariantPosition object
     :return: a dictionary of contamination level and it's log likeliehood value
-    :rtype: dicct[float, float]
+    :rtype: dict[float, float]
     """
     possible_contamination_level = np.arange(CONTAMINATION_RANGE[0], CONTAMINATION_RANGE[1], 0.001)
     result = {}
@@ -154,7 +159,7 @@ def maximum_likelihood_contamination(
 
     :param List[VariantPosition] variant_positions: a list of VariantPosition object
     :return: a dictionary of contamination level and it's log likeliehood value
-    :rtype: dicct[float, float]
+    :rtype: float
     """
 
     likelihoods: dict[float, float] = estimate_contamination(variant_positions)
@@ -172,13 +177,13 @@ def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) 
     :rtype: float
     """
     variants = []
-    with pysam.VariantFile(vcf_file) as vcf:
+    with pysam.VariantFile(vcf_file.as_posix()) as vcf:
         for variant in vcf:
             if "PASS" in variant.filter or len(variant.filter) == 0:
                 total_depth = variant.samples[0]["DP"]
                 variant_depth = variant.samples[0]["AD"][1]
                 variant_type = (
-                    VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL
+                    VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL  # type: ignore
                 )
                 gt_field = variant.samples[0]["GT"]  # e.g. (0, 1)
                 genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM

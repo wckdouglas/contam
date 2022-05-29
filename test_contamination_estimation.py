@@ -24,7 +24,7 @@ from contamination_estimation import (
         ("HET 10% contam looks like ALT (0.0)", 100, 60, "HET", 0.0, -4.52415),
         ("HET 10% contam looks like ALT (0.1)", 100, 60, "HET", 0.1, -2.51060),
         ("HET 10% contam a HOM ALT (0.1)", 100, 90, "HET", 0.1, -2.025973),
-        ("HET 10% contam a HOM ALT (0.1)", 100, 90, "HET", 0.0, -38.83239),
+        ("HET 10% contam a HOM ALT (0.0)", 100, 90, "HET", 0.0, -38.83239),
         ("HOM no contam (0.1)", 100, 100, "HOM", 0.1, -10.536051),
         ("HOM no contam (0.0)", 100, 100, "HOM", 0.0, 0.0),
         ("HOM 10% contam (0.1)", 100, 90, "HOM", 0.1, -2.02597),
@@ -32,6 +32,9 @@ from contamination_estimation import (
     ],
 )
 def test_variant_position(test_case, total_depth, alt_depth, variant_type, contam_level, expect_log_prob):
+    """
+    test function
+    """
     vp = VariantPosition(total_depth, alt_depth, variant_type)
     assert np.isclose(vp.log_contam_probability(contam_level), expect_log_prob, rtol=1e-4), f"Failed {test_case}"
 
