@@ -9,11 +9,18 @@ A module to estimate contamination level from diploid variant calls. This is hea
 
 Basically, we are hypothesizing the contamination level would be between $0-0.4$, and at each hypothesized contamination level, we'll calculate the likelihood observing the observed variant-allele-frequency assuming the given contamination level is true for each variant in the VCF file using a binomial model. We then sum the log likelihood for all variants and pick the maximum likelihood contamination level as the final call.
 
+
+### Homozygous variants
+
 For a homozygous variant, the expected variant-allele-frequency is:
 
 $$ P(\text{expected vaf}) = 1 - cl  $$ 
 
 where $ cl \in [0,0.4] $ is the contamination level.
+
+![](https://github.com/wckdouglas/contam/blob/main/img/hom.png?raw=true)
+
+### Heterozygous variants
 
 For a heterozygous variant, the expected variant-allele-frequency can either be:
 
@@ -23,3 +30,5 @@ For a heterozygous variant, the expected variant-allele-frequency can either be:
 4. $ cl $, when the contam is being called as HET variant
 
 We will evaluate all these cases and pick the highest probability event when summing the likelihoods for the given contamination level.
+
+![](https://github.com/wckdouglas/contam/blob/main/img/het.png?raw=true)
