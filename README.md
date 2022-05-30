@@ -9,6 +9,8 @@ A module to estimate contamination level from diploid variant calls. This is hea
 
 Basically, we are hypothesizing the contamination level would be between $0-0.4$, and at each hypothesized contamination level, we'll calculate the likelihood observing the observed variant-allele-frequency assuming the given contamination level is true for each variant in the VCF file using a binomial model. We then sum the log likelihood for all variants and pick the maximum likelihood contamination level as the final call.
 
+A simulated study at [here](https://github.com/wckdouglas/contam/blob/main/notebooks/contam_simulator.ipynb).
+
 
 ### Homozygous variants
 
