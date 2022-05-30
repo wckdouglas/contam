@@ -47,7 +47,8 @@ class VariantPosition:
 
     :param int total_depth: total depth of the variant
     :param int alt_depth: depth of the variant in the ALT allele
-    :param Genotype variant_type: type of the variant
+    :param Genotype genotype: genotype of the variant (HET or HOM)
+    :param Genotype variant_type: type of the variant (SNV or INDEL)
     """
 
     total_depth: conint(ge=0)  # type: ignore
