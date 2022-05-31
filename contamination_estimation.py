@@ -182,7 +182,8 @@ def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) 
         for variant in vcf:
             if "PASS" in variant.filter or len(variant.filter) == 0:
                 total_depth = variant.samples[0]["DP"]
-                variant_depth = variant.samples[0]["AD"][1]
+                alt = variant.samples[0]["GT"][1]
+                variant_depth = variant.samples[0]["AD"][alt] 
                 variant_type = (
                     VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL  # type: ignore
                 )
