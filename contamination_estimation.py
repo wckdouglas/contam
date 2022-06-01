@@ -15,8 +15,6 @@ else:
 
 from scipy.stats import binom
 
-logging.basicConfig(level=logging.INFO)
-
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
 CONTAMINATION_RANGE = (0, 0.4)
@@ -198,5 +196,5 @@ def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) 
 
     if snv_only:
         variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
-    logging.info(f"Processing {len(variants)} variants")
+    logging.debug(f"Processing {len(variants)} variants")
     return maximum_likelihood_contamination(variants)
