@@ -14,22 +14,23 @@ A simulated study at [here](https://github.com/wckdouglas/contam/blob/main/noteb
 
 ### Homozygous variants
 
-For a homozygous variant, the expected variant-allele-frequency is:
+For a homozygous variant, the probability of observing the expected variant-allele-count ($x$) with a read depth $n$ at a given contamination level $ c \in [0,0.4] $ is :
 
-$$ P(\text{expected vaf}) = 1 - cl  $$ 
+$$ P(X=x) = \binom{n}{x}p^x(1 - p)^{n-x}  $$ 
 
-where $ cl \in [0,0.4] $ is the contamination level.
+where $ p = (1-c) $ in all homozygous variants
 
 ![](https://github.com/wckdouglas/contam/blob/main/img/hom.png?raw=true)
 
 ### Heterozygous variants
 
-For a heterozygous variant, the expected variant-allele-frequency can either be:
+For a heterozygous variant, the probablity of observing the expected variant-allele-count ($x$) with a read depth $n$ at a given contamination level $ c \in [0,0.4] $ will be following the above binomial distribution but $p$ can either be:
 
-1. $ (1 - cl) / 2 $, when low alternate allele frequency because of the contamination
-2. $ (1 - cl) $, when a homozygous variant being called as heterozygous because of the contamination
-3. $ (0.5 + cl) $, when the contamination looks like alternate allele, such that the alternate allele frequency is higher than expected
-4. $ cl $, when the contam is being called as HET variant
+
+1. $ (1 - c) / 2 $, when low alternate allele frequency because of the contamination
+2. $ (1 - c) $, when a homozygous variant being called as heterozygous because of the contamination
+3. $ (0.5 + c) $, when the contamination looks like alternate allele, such that the alternate allele frequency is higher than expected
+4. $ c $, when the contam is being called as HET variant
 
 We will evaluate all these cases and pick the highest probability event when summing the likelihoods for the given contamination level.
 
