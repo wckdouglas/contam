@@ -1,7 +1,13 @@
+import sys
+from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
 import numpy as np
 import pytest
+
+LIB_PATH = (Path(__file__).absolute().parents[1] / "src").as_posix()
+sys.path.append(LIB_PATH)
+print(LIB_PATH)
 
 from contamination_estimation import (
     CONTAMINATION_RANGE,

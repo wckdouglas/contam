@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 import logging
-from typing import Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 import pysam
@@ -10,7 +8,7 @@ from pydantic import FilePath, conint, validate_arguments, validator
 from pydantic.dataclasses import dataclass
 from scipy.stats import binom
 
-from model import Genotype, Interval, VariantType
+from models import Genotype, Interval, VariantType
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
@@ -108,8 +106,8 @@ class VariantPosition:
 
 
 def estimate_contamination(
-    variant_positions: list[VariantPosition],
-) -> dict[float, float]:
+    variant_positions: List[VariantPosition],
+) -> Dict[float, float]:
     """
     Given a list of SNV position, we will calculate the likelihood at different contamination
     level
@@ -130,7 +128,7 @@ def estimate_contamination(
 
 
 def maximum_likelihood_contamination(
-    variant_positions: list[VariantPosition],
+    variant_positions: List[VariantPosition],
 ) -> float:
     """
     Given a list of SNV position, we will estimate the most probable contamination level
@@ -146,7 +144,7 @@ def maximum_likelihood_contamination(
 
 
 @validate_arguments
-def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[list[Interval]] = None) -> list[VariantPosition]:
+def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Interval]] = None) -> List[VariantPosition]:
     """
     extract variant info from vcf file
 
@@ -155,13 +153,13 @@ def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[list[Inter
     :return: a list of VariantPosition object
     :rtype: list[VariantPosition]
     """
-    variants: list[VariantPosition] = []
-    pysam.tabix_index(vcf_file, preset="vcf", force=True, keep_original=True)
-    idx_vcf_file = vcf_file.as_posix() + ".gz" if vcf_file.suffix == ".gz" else vcf_file.as_posix()
+    variant_list: List[VariantPosition] = []
+    pysam.tabix_index(vcf_file.as_posix(), preset="vcf", force=True, keep_original=True)
+    idx_vcf_file = vcf_file.as_posix() if vcf_file.suffix == ".gz" else vcf_file.as_posix() + ".gz"
     with pysam.VariantFile(idx_vcf_file) as vcf:  # type: ignore
         variants = iter(vcf)
         if intervals:
-            variants = flatten(vcf.fetch(interval.chrom, interval.start, interval.stop) for interval in intervals)
+            variants = flatten(vcf.fetch(interval.chrom, interval.start, interval.stop) for interval in intervals)  # type: ignore
         else:
             variants = iter(vcf)
 
@@ -176,17 +174,17 @@ def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[list[Inter
                 gt_field: tuple[int, int] = variant.samples[0]["GT"]  # e.g. (0, 1)
                 genotype: Genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM
 
-                variants.append(
+                variant_list.append(
                     VariantPosition(
                         total_depth=total_depth, alt_depth=variant_depth, genotype=genotype, variant_type=variant_type
                     )
                 )
-    return variants
+    return variant_list
 
 
 @validate_arguments
 def estimate_vcf_contamination_level(
-    vcf_file: FilePath, snv_only: bool = True, intervals: Optional[list[Interval]] = None
+    vcf_file: FilePath, snv_only: bool = True, intervals: Optional[List[Interval]] = None
 ) -> float:
     """
     estimate contamination level of a vcf file
