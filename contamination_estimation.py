@@ -166,6 +166,35 @@ def maximum_likelihood_contamination(
     return sorted_likelihoods[-1][0]  # the key of the last item is the max likelihood
 
 
+def collect_variants_from_vcf(vcf_file: FilePath) -> list[VariantPosition]:
+    """
+    extract variant info from vcf file
+
+    :param FilePath vcf_file: vcf file path
+    :return: a list of VariantPosition object
+    :rtype: list[VariantPosition]
+    """
+    variants = []
+    with pysam.VariantFile(vcf_file.as_posix()) as vcf:  # type: ignore
+        for variant in vcf:
+            if "PASS" in variant.filter or len(variant.filter) == 0:
+                total_depth: int = variant.samples[0]["DP"]
+                alt: int = variant.samples[0]["GT"][1]
+                variant_depth: int = variant.samples[0]["AD"][alt]
+                variant_type: VariantType = (
+                    VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL  # type: ignore
+                )
+                gt_field: tuple[int, int] = variant.samples[0]["GT"]  # e.g. (0, 1)
+                genotype: Genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM
+
+                variants.append(
+                    VariantPosition(
+                        total_depth=total_depth, alt_depth=variant_depth, genotype=genotype, variant_type=variant_type
+                    )
+                )
+    return variants
+
+
 @validate_arguments
 def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) -> float:
     """
@@ -175,25 +204,7 @@ def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) 
     :return: contamination level
     :rtype: float
     """
-    variants = []
-    with pysam.VariantFile(vcf_file.as_posix()) as vcf:
-        for variant in vcf:
-            if "PASS" in variant.filter or len(variant.filter) == 0:
-                total_depth = variant.samples[0]["DP"]
-                alt = variant.samples[0]["GT"][1]
-                variant_depth = variant.samples[0]["AD"][alt] 
-                variant_type = (
-                    VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL  # type: ignore
-                )
-                gt_field = variant.samples[0]["GT"]  # e.g. (0, 1)
-                genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM
-
-                variants.append(
-                    VariantPosition(
-                        total_depth=total_depth, alt_depth=variant_depth, genotype=genotype, variant_type=variant_type
-                    )
-                )
-
+    variants = collect_variants_from_vcf(vcf_file)
     if snv_only:
         variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
     logging.debug(f"Processing {len(variants)} variants")
