@@ -174,7 +174,7 @@ def collect_variants_from_vcf(vcf_file: FilePath) -> list[VariantPosition]:
     :return: a list of VariantPosition object
     :rtype: list[VariantPosition]
     """
-    variants = []
+    variants: list[VariantPosition] = []
     with pysam.VariantFile(vcf_file.as_posix()) as vcf:  # type: ignore
         for variant in vcf:
             if "PASS" in variant.filter or len(variant.filter) == 0:
