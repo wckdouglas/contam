@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import pysam
+from more_itertools import flatten
 from pydantic import FilePath, conint, validate_arguments, validator
 
 if TYPE_CHECKING:
@@ -18,6 +19,13 @@ from scipy.stats import binom
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
 CONTAMINATION_RANGE = (0, 0.4)
+
+
+@dataclass(frozen=True)
+class Interval:
+    chrom: str
+    start: int
+    stop: int
 
 
 class Genotype(Enum):
@@ -166,17 +174,27 @@ def maximum_likelihood_contamination(
     return sorted_likelihoods[-1][0]  # the key of the last item is the max likelihood
 
 
-def collect_variants_from_vcf(vcf_file: FilePath) -> list[VariantPosition]:
+@validate_arguments
+def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[list[Interval]] = None) -> list[VariantPosition]:
     """
     extract variant info from vcf file
 
     :param FilePath vcf_file: vcf file path
+    :param Optional[list[Interval]] intervals: a list of intervals to filter the vcf file, if none, then all variants are used
     :return: a list of VariantPosition object
     :rtype: list[VariantPosition]
     """
     variants: list[VariantPosition] = []
-    with pysam.VariantFile(vcf_file.as_posix()) as vcf:  # type: ignore
-        for variant in vcf:
+    pysam.tabix_index(vcf_file, preset="vcf", force=True, keep_original=True)
+    idx_vcf_file = vcf_file.as_posix() + ".gz" if vcf_file.suffix == ".gz" else vcf_file.as_posix()
+    with pysam.VariantFile(idx_vcf_file) as vcf:  # type: ignore
+        variants = iter(vcf)
+        if intervals:
+            variants = flatten(vcf.fetch(interval.chrom, interval.start, interval.stop) for interval in intervals)
+        else:
+            variants = iter(vcf)
+
+        for variant in variants:
             if "PASS" in variant.filter or len(variant.filter) == 0:
                 total_depth: int = variant.samples[0]["DP"]
                 alt: int = variant.samples[0]["GT"][1]
@@ -196,15 +214,18 @@ def collect_variants_from_vcf(vcf_file: FilePath) -> list[VariantPosition]:
 
 
 @validate_arguments
-def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) -> float:
+def estimate_vcf_contamination_level(
+    vcf_file: FilePath, snv_only: bool = True, intervals: Optional[list[Interval]] = None
+) -> float:
     """
     estimate contamination level of a vcf file
 
     :param Path vcf_file: a vcf file for a sample
+    :param Optional[list[Interval]] intervals: a list of intervals to filter the vcf file, if none, then all variants are used
     :return: contamination level
     :rtype: float
     """
-    variants = collect_variants_from_vcf(vcf_file)
+    variants = collect_variants_from_vcf(vcf_file, intervals=intervals)
     if snv_only:
         variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
     logging.debug(f"Processing {len(variants)} variants")
