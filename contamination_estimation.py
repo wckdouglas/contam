@@ -1,49 +1,20 @@
 from __future__ import annotations
 
 import logging
-from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 import numpy as np
 import pysam
 from more_itertools import flatten
 from pydantic import FilePath, conint, validate_arguments, validator
-
-if TYPE_CHECKING:
-    from dataclasses import dataclass
-else:
-    from pydantic.dataclasses import dataclass
-
+from pydantic.dataclasses import dataclass
 from scipy.stats import binom
+
+from model import Genotype, Interval, VariantType
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
 CONTAMINATION_RANGE = (0, 0.4)
-
-
-@dataclass(frozen=True)
-class Interval:
-    chrom: str
-    start: int
-    stop: int
-
-
-class Genotype(Enum):
-    """
-    enum for genotype of the variant call
-    """
-
-    HET = "HET"  # heterozygous
-    HOM = "HOM"  # homozygous
-
-
-class VariantType(Enum):
-    """
-    enum for variant type of the variant
-    """
-
-    SNV = "SNV"
-    INDEL = "INDEL"
 
 
 @dataclass(frozen=True)

@@ -27,7 +27,10 @@ dev = ["pytest", "mypy", "pytest-cov"]
 
 
 [tool.mypy]
-plugins = "numpy.typing.mypy_plugin"
+plugins = [
+    "numpy.typing.mypy_plugin",
+    "pydantic.mypy"
+]
 
 [[tool.mypy.overrides]]
 module = [
