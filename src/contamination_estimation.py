@@ -79,7 +79,7 @@ class VariantPosition:
             contam_level,  # this is when the contam is being called as het
         ]
         max_log_prob = max(
-            binom.logpmf(
+            binom.logpmf(  # type: ignore
                 k=self.alt_depth,
                 n=self.total_depth,
                 p=expected_alt_fraction,
@@ -160,8 +160,6 @@ def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Inter
         variants = iter(vcf)
         if intervals:
             variants = flatten(vcf.fetch(interval.chrom, interval.start, interval.stop) for interval in intervals)  # type: ignore
-        else:
-            variants = iter(vcf)
 
         for variant in variants:
             if "PASS" in variant.filter or len(variant.filter) == 0:

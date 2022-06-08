@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from models import Interval
 
-EXONS: list[Interval] = [
+EXONS: list[Interval] = [  # hg19
+    # GBA
     Interval("1", 155204243, 155204891),
     Interval("1", 155204986, 155205635),
     Interval("1", 155205973, 155206260),
@@ -14,12 +15,14 @@ EXONS: list[Interval] = [
     Interval("1", 155209968, 155210090),
     Interval("1", 155210421, 155210508),
     Interval("1", 155210877, 155211066),
+    # CYP21A2
     Interval("6", 32006042, 32007025),
     Interval("6", 32007133, 32007261),
     Interval("6", 32007323, 32007749),
     Interval("6", 32007782, 32007982),
     Interval("6", 32008183, 32008548),
     Interval("6", 32008646, 32009447),
+    # PMS2
     Interval("7", 6012870, 6013173),
     Interval("7", 6017219, 6017388),
     Interval("7", 6018227, 6018327),

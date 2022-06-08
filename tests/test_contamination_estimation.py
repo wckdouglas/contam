@@ -1,21 +1,25 @@
 import sys
+from operator import itemgetter
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
 import numpy as np
 import pytest
 
+from tests import MOCK_VARIANT_POSITIONS, MOCK_VCF_RECORDS, PysamFakeVcf
+
 LIB_PATH = (Path(__file__).absolute().parents[1] / "src").as_posix()
 sys.path.append(LIB_PATH)
-print(LIB_PATH)
 
 from contamination_estimation import (
     CONTAMINATION_RANGE,
     VariantPosition,
+    collect_variants_from_vcf,
     estimate_contamination,
     estimate_vcf_contamination_level,
     maximum_likelihood_contamination,
 )
+from models import Interval
 
 
 @pytest.mark.parametrize(
@@ -84,64 +88,29 @@ def test_maximum_likelihood_contamination():
         assert result == 0.3
 
 
-class PysamFakeVcf:
-    """
-    mock pysam.VariantFile object
-    """
-
-    def __init__(self, variants):
-        """
-        a mock object that mimics the pysam.VariantFile object
-        :param List variants: reads of the mock vcf file
-        """
-        self.variants = variants
-
-    def __iter__(self):
-        return iter(self.variants)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        return self
-
-    def close(self):
-        return self
-
-
-def test_estimate_vcf_contamination_level(tmp_path):
+@pytest.mark.parametrize(
+    "test_case,interval, expected_variants",
+    [
+        ("without interval", None, [0, 1, 2, 4]),
+        ("with 1 interval", [Interval("chr1", 1250, 1701)], [4]),
+        ("with 2 intervals", [Interval("chr1", 90, 101), Interval("chr1", 1250, 1701)], [0, 4]),
+        ("Interval (RefCall)", [Interval("chr1", 1299, 1301)], None),
+    ],
+)
+def test_collect_variants_from_vcf(tmp_path, test_case, interval, expected_variants):
     """
     test function
     """
-    MOCK_VCF_RECORDS = [
-        MagicMock(filter=["PASS"], alleles=("CT", "C"), samples=[{"DP": 1152, "AD": (460, 552), "GT": (0, 1)}]),
-        MagicMock(
-            filter=["PASS"], alleles=("CTCCTCTCCTTCCTCT", "C"), samples=[{"DP": 1122, "AD": (647, 469), "GT": (0, 1)}]
-        ),
-        MagicMock(filter=["PASS"], alleles=("CTCTCCT", "C"), samples=[{"DP": 1044, "AD": (604, 437), "GT": (0, 1)}]),
-        MagicMock(filter=["RefCall"], alleles=("C", "T"), samples=[{"DP": 1043, "AD": (600, 442), "GT": (None, None)}]),
-        MagicMock(filter=["PASS"], alleles=("T", "C"), samples=[{"DP": 978, "AD": (534, 441), "GT": (0, 1)}]),
-        MagicMock(filter=["PASS"], alleles=("T", "C"), samples=[{"DP": 1038, "AD": (536, 493), "GT": (0, 1)}]),
-        MagicMock(filter=["PASS"], alleles=("C", "A"), samples=[{"DP": 1051, "AD": (550, 487), "GT": (0, 1)}]),
-        MagicMock(filter=["PASS"], alleles=("T", "C"), samples=[{"DP": 1053, "AD": (547, 476), "GT": (0, 1)}]),
-        MagicMock(filter=["PASS"], alleles=("T", "A"), samples=[{"DP": 1054, "AD": (563, 483), "GT": (0, 1)}]),
-        MagicMock(filter=["PASS"], alleles=("CTT", "C"), samples=[{"DP": 1065, "AD": (577, 445), "GT": (0, 1)}]),
-        MagicMock(filter=["PASS"], alleles=("CT", "C"), samples=[{"DP": 1058, "AD": (597, 459), "GT": (0, 1)}]),
-        MagicMock(filter=["PASS"], alleles=("C", "T"), samples=[{"DP": 1053, "AD": (569, 466), "GT": (0, 1)}]),
-        MagicMock(filter=["RefCall"], alleles=("T", "C"), samples=[{"DP": 1044, "AD": (554, 466), "GT": (None, None)}]),
-        MagicMock(filter=["PASS"], alleles=("TTCC", "T"), samples=[{"DP": 1068, "AD": (600, 453), "GT": (0, 1)}]),
-        MagicMock(
-            filter=["PASS"],
-            alleles=("C", "CCCTCCCCTTCTCCTTCCTCCCCTTCTT"),
-            samples=[{"DP": 1100, "AD": (679, 374), "GT": (0, 1)}],
-        ),
-        MagicMock(filter=["PASS"], alleles=("C", "T"), samples=[{"DP": 1131, "AD": (583, 517), "GT": (0, 1)}]),
-    ]
 
     temp_vcf = tmp_path / "test.vcf"
     temp_vcf.write_text("content")
-    with patch("pysam.VariantFile") as mock_variants:
+    expected_variants = itemgetter(*expected_variants)(MOCK_VARIANT_POSITIONS) if expected_variants else ()
+    if not isinstance(expected_variants, tuple):
+        expected_variants = [expected_variants]
+    with patch("pysam.VariantFile") as mock_variants, patch("pysam.tabix_index"):
         mock_vcf = PysamFakeVcf(variants=MOCK_VCF_RECORDS)
         mock_variants.return_value.__enter__.return_value = mock_vcf
-
-        assert np.isclose(0.086, estimate_vcf_contamination_level(temp_vcf, snv_only=True))
+        out_variants = collect_variants_from_vcf(temp_vcf, intervals=interval)
+        assert len(expected_variants) == len(out_variants), f"Failed for {test_case}"
+        for expected_variant in expected_variants:
+            assert expected_variant in out_variants, f"Failed for {test_case}"
