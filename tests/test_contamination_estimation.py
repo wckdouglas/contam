@@ -89,7 +89,7 @@ def test_maximum_likelihood_contamination():
 
 
 @pytest.mark.parametrize(
-    "test_case,interval, expected_variants",
+    "test_case,interval, expected_variants_idx",
     [
         ("without interval", None, [0, 1, 2, 4]),
         ("with 1 interval", [Interval("chr1", 1250, 1701)], [4]),
@@ -97,20 +97,52 @@ def test_maximum_likelihood_contamination():
         ("Interval (RefCall)", [Interval("chr1", 1299, 1301)], None),
     ],
 )
-def test_collect_variants_from_vcf(tmp_path, test_case, interval, expected_variants):
+def test_collect_variants_from_vcf(tmp_path, test_case, interval, expected_variants_idx):
     """
     test function
     """
 
     temp_vcf = tmp_path / "test.vcf"
     temp_vcf.write_text("content")
-    expected_variants = itemgetter(*expected_variants)(MOCK_VARIANT_POSITIONS) if expected_variants else ()
+    expected_variants = itemgetter(*expected_variants_idx)(MOCK_VARIANT_POSITIONS) if expected_variants_idx else ()
     if not isinstance(expected_variants, tuple):
-        expected_variants = [expected_variants]
-    with patch("pysam.VariantFile") as mock_variants, patch("pysam.tabix_index"):
+        expected_variants = (expected_variants,)
+    with patch("contamination_estimation.pysam.VariantFile") as mock_variants, patch(
+        "contamination_estimation.pysam.tabix_index"
+    ):
         mock_vcf = PysamFakeVcf(variants=MOCK_VCF_RECORDS)
         mock_variants.return_value.__enter__.return_value = mock_vcf
         out_variants = collect_variants_from_vcf(temp_vcf, intervals=interval)
         assert len(expected_variants) == len(out_variants), f"Failed for {test_case}"
         for expected_variant in expected_variants:
             assert expected_variant in out_variants, f"Failed for {test_case}"
+
+
+@pytest.mark.parametrize(
+    "test_case,snv,intervals, expected_variants_idx",
+    [
+        ("with interval, snv only", True, [Interval("chr1", 1250, 1701)], [4]),
+        ("with no interval, snv only", True, None, [4]),
+        ("with interval, snv+indel", False, [Interval("chr1", 1250, 1701)], [4]),
+        ("with no interval, snv+indel", False, None, [0, 1, 2, 4]),
+        ("with no interval, snv+indel", False, [Interval("chr2", 1, 2)], []),
+    ],
+)
+def test_estimate_vcf_contamination_level(tmp_path, test_case, snv, intervals, expected_variants_idx):
+    temp_vcf = tmp_path / "test.vcf"
+    temp_vcf.write_text("content")
+    expected_variants = itemgetter(*expected_variants_idx)(MOCK_VARIANT_POSITIONS) if expected_variants_idx else ()
+    if not isinstance(expected_variants, tuple):
+        expected_variants = (expected_variants,)
+    with patch("contamination_estimation.pysam.VariantFile") as mock_variants, patch(
+        "contamination_estimation.pysam.tabix_index"
+    ), patch("contamination_estimation.maximum_likelihood_contamination") as mock_func, patch(
+        "contamination_estimation.logging"
+    ) as mock_log:
+        mock_vcf = PysamFakeVcf(variants=MOCK_VCF_RECORDS)
+        mock_variants.return_value.__enter__.return_value = mock_vcf
+        contam_level = estimate_vcf_contamination_level(temp_vcf, intervals=intervals, snv_only=snv)
+        if len(expected_variants_idx) > 0:
+            mock_func.assert_called_once_with(list(expected_variants))
+        else:
+            mock_log.warning.assert_called_once_with("No variants found in vcf file %s", temp_vcf)

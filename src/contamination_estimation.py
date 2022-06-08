@@ -196,4 +196,7 @@ def estimate_vcf_contamination_level(
     if snv_only:
         variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
     logging.debug(f"Processing {len(variants)} variants")
+    if len(variants) == 0:
+        logging.warning("No variants found in vcf file %s", vcf_file)
+        return 0
     return maximum_likelihood_contamination(variants)
