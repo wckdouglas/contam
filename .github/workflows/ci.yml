@@ -44,4 +44,4 @@ jobs:
         
       - name: type check
         run: |
-          poetry run mypy diploid_contam --strict
+          poetry run mypy diploid_contam

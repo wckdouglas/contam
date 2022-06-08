@@ -55,7 +55,7 @@ class VariantPosition:
             k=self.alt_depth,
             n=self.total_depth,
             p=expected_alt_fraction,
-        )
+        )  # type: ignore
         return max_log_prob
 
     def heterozygous_log_prob(self, contam_level: float) -> float:
@@ -79,11 +79,11 @@ class VariantPosition:
             contam_level,  # this is when the contam is being called as het
         ]
         max_log_prob = max(
-            binom.logpmf(  # type: ignore
+            binom.logpmf(
                 k=self.alt_depth,
                 n=self.total_depth,
                 p=expected_alt_fraction,
-            )
+            )  # type: ignore
             for expected_alt_fraction in possibe_expected_alt_fraction
         )
         return max_log_prob
