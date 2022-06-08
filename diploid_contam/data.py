@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from models import Interval
+from diploid_contam.models import Interval
 
 EXONS: list[Interval] = [  # hg19
     # GBA

@@ -1,12 +1,7 @@
-import sys
-from pathlib import Path
-
-LIB_PATH = (Path(__file__).absolute().parents[1] / "src").as_posix()
-sys.path.append(LIB_PATH)
 from unittest.mock import MagicMock
 
-from contamination_estimation import VariantPosition
-from models import Genotype, VariantType
+from diploid_contam.contamination_estimation import VariantPosition
+from diploid_contam.models import Genotype, VariantType
 
 
 class PysamFakeVcf:

@@ -1,4 +1,3 @@
-import sys
 from operator import itemgetter
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
@@ -6,12 +5,7 @@ from unittest.mock import MagicMock, call, patch
 import numpy as np
 import pytest
 
-from tests import MOCK_VARIANT_POSITIONS, MOCK_VCF_RECORDS, PysamFakeVcf
-
-LIB_PATH = (Path(__file__).absolute().parents[1] / "src").as_posix()
-sys.path.append(LIB_PATH)
-
-from contamination_estimation import (
+from diploid_contam.contamination_estimation import (
     CONTAMINATION_RANGE,
     VariantPosition,
     collect_variants_from_vcf,
@@ -19,7 +13,8 @@ from contamination_estimation import (
     estimate_vcf_contamination_level,
     maximum_likelihood_contamination,
 )
-from models import Interval
+from diploid_contam.models import Interval
+from tests import MOCK_VARIANT_POSITIONS, MOCK_VCF_RECORDS, PysamFakeVcf
 
 
 @pytest.mark.parametrize(
@@ -82,7 +77,7 @@ def test_maximum_likelihood_contamination():
     """
     test_function
     """
-    with patch("contamination_estimation.estimate_contamination") as mock_estimate_contamination:
+    with patch("diploid_contam.contamination_estimation.estimate_contamination") as mock_estimate_contamination:
         mock_estimate_contamination.return_value = {0.1: 0.1, 0.3: 0.3, 0.2: 0.2}
         result = maximum_likelihood_contamination(["mock", "mock"])
         assert result == 0.3
@@ -107,8 +102,8 @@ def test_collect_variants_from_vcf(tmp_path, test_case, interval, expected_varia
     expected_variants = itemgetter(*expected_variants_idx)(MOCK_VARIANT_POSITIONS) if expected_variants_idx else ()
     if not isinstance(expected_variants, tuple):
         expected_variants = (expected_variants,)
-    with patch("contamination_estimation.pysam.VariantFile") as mock_variants, patch(
-        "contamination_estimation.pysam.tabix_index"
+    with patch("diploid_contam.contamination_estimation.pysam.VariantFile") as mock_variants, patch(
+        "diploid_contam.contamination_estimation.pysam.tabix_index"
     ):
         mock_vcf = PysamFakeVcf(variants=MOCK_VCF_RECORDS)
         mock_variants.return_value.__enter__.return_value = mock_vcf
@@ -134,10 +129,10 @@ def test_estimate_vcf_contamination_level(tmp_path, test_case, snv, intervals, e
     expected_variants = itemgetter(*expected_variants_idx)(MOCK_VARIANT_POSITIONS) if expected_variants_idx else ()
     if not isinstance(expected_variants, tuple):
         expected_variants = (expected_variants,)
-    with patch("contamination_estimation.pysam.VariantFile") as mock_variants, patch(
-        "contamination_estimation.pysam.tabix_index"
-    ), patch("contamination_estimation.maximum_likelihood_contamination") as mock_func, patch(
-        "contamination_estimation.logging"
+    with patch("diploid_contam.contamination_estimation.pysam.VariantFile") as mock_variants, patch(
+        "diploid_contam.contamination_estimation.pysam.tabix_index"
+    ), patch("diploid_contam.contamination_estimation.maximum_likelihood_contamination") as mock_func, patch(
+        "diploid_contam.contamination_estimation.logging"
     ) as mock_log:
         mock_vcf = PysamFakeVcf(variants=MOCK_VCF_RECORDS)
         mock_variants.return_value.__enter__.return_value = mock_vcf

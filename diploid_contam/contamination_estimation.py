@@ -8,7 +8,7 @@ from pydantic import FilePath, conint, validate_arguments, validator
 from pydantic.dataclasses import dataclass
 from scipy.stats import binom
 
-from models import Genotype, Interval, VariantType
+from diploid_contam.models import Genotype, Interval, VariantType
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
