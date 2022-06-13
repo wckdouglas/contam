@@ -32,8 +32,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: .  # this is where the superlinter looks for config files
 
-          VALIDATE_PYTHON: false  # just in case
           VALIDATE_PYTHON_FLAKE8: false
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_MYPY_CONFIG_FILE: pyproject.toml
 
       - name: Install poetry
         uses: Gr1N/setup-poetry@v4
