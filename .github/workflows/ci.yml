@@ -37,6 +37,16 @@ jobs:
         run: |
           poetry run python setup.py install
 
+      - name: Lint Code Base
+        uses: github/super-linter@v4.0.2
+        env:
+          # https://github.com/github/super-linter#environment-variables
+          DEFAULT_BRANCH: origin/main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: .  # this is where the superlinter looks for config files
+
+          VALIDATE_PYTHON: false  # just in case
+          VALIDATE_PYTHON_FLAKE8: false
 
       - name: Unit test
         run: |
