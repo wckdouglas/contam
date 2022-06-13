@@ -166,6 +166,7 @@ def maximum_likelihood_contamination(
     return sorted_likelihoods[-1][0]  # the key of the last item is the max likelihood
 
 
+@validate_arguments
 def collect_variants_from_vcf(vcf_file: FilePath) -> list[VariantPosition]:
     """
     extract variant info from vcf file
