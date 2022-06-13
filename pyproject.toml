@@ -11,6 +11,7 @@ scipy = "^1.7.3"
 numpy = "^1.21.4"
 pydantic = "^1.9.1"
 pysam = "^0.19.1"
+more-itertools = "^8.13.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -27,7 +28,10 @@ dev = ["pytest", "mypy", "pytest-cov"]
 
 
 [tool.mypy]
-plugins = "numpy.typing.mypy_plugin"
+plugins = [
+    "numpy.typing.mypy_plugin",
+    "pydantic.mypy"
+]
 
 [[tool.mypy.overrides]]
 module = [

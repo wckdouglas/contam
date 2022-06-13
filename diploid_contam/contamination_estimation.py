@@ -1,41 +1,18 @@
-from __future__ import annotations
-
 import logging
-from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 import pysam
+from more_itertools import flatten
 from pydantic import FilePath, conint, validate_arguments, validator
-
-if TYPE_CHECKING:
-    from dataclasses import dataclass
-else:
-    from pydantic.dataclasses import dataclass
-
+from pydantic.dataclasses import dataclass
 from scipy.stats import binom
+
+from diploid_contam.models import Genotype, Interval, VariantType
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
 CONTAMINATION_RANGE = (0, 0.4)
-
-
-class Genotype(Enum):
-    """
-    enum for genotype of the variant call
-    """
-
-    HET = "HET"  # heterozygous
-    HOM = "HOM"  # homozygous
-
-
-class VariantType(Enum):
-    """
-    enum for variant type of the variant
-    """
-
-    SNV = "SNV"
-    INDEL = "INDEL"
 
 
 @dataclass(frozen=True)
@@ -78,7 +55,7 @@ class VariantPosition:
             k=self.alt_depth,
             n=self.total_depth,
             p=expected_alt_fraction,
-        )
+        )  # type: ignore
         return max_log_prob
 
     def heterozygous_log_prob(self, contam_level: float) -> float:
@@ -106,7 +83,7 @@ class VariantPosition:
                 k=self.alt_depth,
                 n=self.total_depth,
                 p=expected_alt_fraction,
-            )
+            )  # type: ignore
             for expected_alt_fraction in possibe_expected_alt_fraction
         )
         return max_log_prob
@@ -129,8 +106,8 @@ class VariantPosition:
 
 
 def estimate_contamination(
-    variant_positions: list[VariantPosition],
-) -> dict[float, float]:
+    variant_positions: List[VariantPosition],
+) -> Dict[float, float]:
     """
     Given a list of SNV position, we will calculate the likelihood at different contamination
     level
@@ -151,7 +128,7 @@ def estimate_contamination(
 
 
 def maximum_likelihood_contamination(
-    variant_positions: list[VariantPosition],
+    variant_positions: List[VariantPosition],
 ) -> float:
     """
     Given a list of SNV position, we will estimate the most probable contamination level
@@ -167,17 +144,24 @@ def maximum_likelihood_contamination(
 
 
 @validate_arguments
-def collect_variants_from_vcf(vcf_file: FilePath) -> list[VariantPosition]:
+def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Interval]] = None) -> List[VariantPosition]:
     """
     extract variant info from vcf file
 
     :param FilePath vcf_file: vcf file path
+    :param Optional[list[Interval]] intervals: a list of intervals to filter the vcf file, if none, then all variants are used
     :return: a list of VariantPosition object
     :rtype: list[VariantPosition]
     """
-    variants: list[VariantPosition] = []
-    with pysam.VariantFile(vcf_file.as_posix()) as vcf:  # type: ignore
-        for variant in vcf:
+    variant_list: List[VariantPosition] = []
+    pysam.tabix_index(vcf_file.as_posix(), preset="vcf", force=True, keep_original=True)
+    idx_vcf_file = vcf_file.as_posix() if vcf_file.suffix == ".gz" else vcf_file.as_posix() + ".gz"
+    with pysam.VariantFile(idx_vcf_file) as vcf:  # type: ignore
+        variants = iter(vcf)
+        if intervals:
+            variants = flatten(vcf.fetch(interval.chrom, interval.start, interval.stop) for interval in intervals)  # type: ignore
+
+        for variant in variants:
             if "PASS" in variant.filter or len(variant.filter) == 0:
                 total_depth: int = variant.samples[0]["DP"]
                 alt: int = variant.samples[0]["GT"][1]
@@ -188,25 +172,31 @@ def collect_variants_from_vcf(vcf_file: FilePath) -> list[VariantPosition]:
                 gt_field: tuple[int, int] = variant.samples[0]["GT"]  # e.g. (0, 1)
                 genotype: Genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM
 
-                variants.append(
+                variant_list.append(
                     VariantPosition(
                         total_depth=total_depth, alt_depth=variant_depth, genotype=genotype, variant_type=variant_type
                     )
                 )
-    return variants
+    return variant_list
 
 
 @validate_arguments
-def estimate_vcf_contamination_level(vcf_file: FilePath, snv_only: bool = True) -> float:
+def estimate_vcf_contamination_level(
+    vcf_file: FilePath, snv_only: bool = True, intervals: Optional[List[Interval]] = None
+) -> float:
     """
     estimate contamination level of a vcf file
 
     :param Path vcf_file: a vcf file for a sample
+    :param Optional[list[Interval]] intervals: a list of intervals to filter the vcf file, if none, then all variants are used
     :return: contamination level
     :rtype: float
     """
-    variants = collect_variants_from_vcf(vcf_file)
+    variants = collect_variants_from_vcf(vcf_file, intervals=intervals)
     if snv_only:
         variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
     logging.debug(f"Processing {len(variants)} variants")
+    if len(variants) == 0:
+        logging.warning("No variants found in vcf file %s", vcf_file)
+        return 0
     return maximum_likelihood_contamination(variants)

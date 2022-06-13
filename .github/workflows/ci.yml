@@ -33,10 +33,15 @@ jobs:
         run: |
           poetry install -E dev
 
+      - name: Install package
+        run: |
+          poetry run python setup.py install
+
+
       - name: Unit test
         run: |
           poetry run coverage run -m pytest -l  -rPap -vvv -p no:warnings  --cov-report term-missing --cov-report html --cov .
         
       - name: type check
         run: |
-          poetry run mypy .
+          poetry run mypy diploid_contam
