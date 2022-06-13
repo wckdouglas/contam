@@ -174,7 +174,10 @@ def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Inter
 
                 variant_list.append(
                     VariantPosition(
-                        total_depth=total_depth, alt_depth=variant_depth, genotype=genotype, variant_type=variant_type
+                        total_depth=total_depth,
+                        alt_depth=variant_depth,
+                        genotype=genotype,
+                        variant_type=variant_type,
                     )
                 )
     return variant_list
@@ -182,7 +185,9 @@ def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Inter
 
 @validate_arguments
 def estimate_vcf_contamination_level(
-    vcf_file: FilePath, snv_only: bool = True, intervals: Optional[List[Interval]] = None
+    vcf_file: FilePath,
+    snv_only: bool = True,
+    intervals: Optional[List[Interval]] = None,
 ) -> float:
     """
     estimate contamination level of a vcf file

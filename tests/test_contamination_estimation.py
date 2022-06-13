@@ -88,7 +88,11 @@ def test_maximum_likelihood_contamination():
     [
         ("without interval", None, [0, 1, 2, 4]),
         ("with 1 interval", [Interval("chr1", 1250, 1701)], [4]),
-        ("with 2 intervals", [Interval("chr1", 90, 101), Interval("chr1", 1250, 1701)], [0, 4]),
+        (
+            "with 2 intervals",
+            [Interval("chr1", 90, 101), Interval("chr1", 1250, 1701)],
+            [0, 4],
+        ),
         ("Interval (RefCall)", [Interval("chr1", 1299, 1301)], None),
     ],
 )
