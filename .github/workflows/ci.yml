@@ -47,5 +47,5 @@ jobs:
 
       - name: formatting
         run: |
-          poetry run black --check
-          poetry run isort --check
+          poetry run black --check .
+          poetry run isort --check .
