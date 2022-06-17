@@ -37,13 +37,13 @@ where $p = (1-c)$ in all homozygous variants
 
 ### Heterozygous variants
 
-For a heterozygous variant, the probablity of observing the expected variant-allele-count ($x$) with a read depth $n$ at a given contamination level $ c \in [0,0.4] $ will follow the above binomial distribution but $p$ can either be:
+For a heterozygous variant, the probablity of observing the expected variant-allele-count ($x$) with a read depth $n$ at a given contamination level $c \in [0,0.4]$ will follow the above binomial distribution but $p$ can either be:
 
 
-1. $ (1 - c) / 2 $, when a low alternate allele frequency is observed because of the contamination
-2. $ (1 - c) $, when a homozygous variant being called as a heterozygous variant because of the contamination
-3. $ (0.5 + c) $, when the contamination looks like the alternate allele, such that the alternate allele frequency is higher than expected
-4. $ c $, when the contamination itself is called as low variant frequency heterozygous variant
+1. $(1 - c)/2$, when a low alternate allele frequency is observed because of the contamination
+2. $(1 - c)$, when a homozygous variant being called as a heterozygous variant because of the contamination
+3. $(0.5 + c)$, when the contamination looks like the alternate allele, such that the alternate allele frequency is higher than expected
+4. $c$, when the contamination itself is called as low variant frequency heterozygous variant
 
 After evaluating these cases, we will pick the highest probability event when summing the log likelihoods for the given contamination level.
 
