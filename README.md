@@ -29,7 +29,7 @@ A simulated study at [here](https://github.com/wckdouglas/contam/blob/main/noteb
 
 For a homozygous variant, the probability of observing the expected variant-allele-count ($x$) with a read depth $n$ at a given contamination level $c \in [0,0.4]$ is :
 
-$$ P(X=x) = \binom{n}{x}p^x(1 - p)^{n-x}  $$ 
+$$ P(X=x|c) = \binom{n}{x}p^x(1 - p)^{n-x}  $$ 
 
 where $ p = (1-c) $ in all homozygous variants
 
