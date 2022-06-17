@@ -31,7 +31,7 @@ For a homozygous variant, the probability of observing the expected variant-alle
 
 $$ P(X=x,c) = \binom{n}{x}p^x(1 - p)^{n-x}  $$ 
 
-where $ p = (1-c) $ in all homozygous variants
+where $p = (1-c)$ in all homozygous variants
 
 ![](https://github.com/wckdouglas/contam/blob/main/img/hom.png?raw=true)
 
