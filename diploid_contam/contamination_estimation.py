@@ -12,7 +12,7 @@ from diploid_contam.models import Genotype, Interval, VariantType
 
 # https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py
 
-CONTAMINATION_RANGE = (0, 0.4)
+CONTAMINATION_RANGE = (0, 0.3)
 
 
 @dataclass(frozen=True)
@@ -73,9 +73,10 @@ class VariantPosition:
         :rtype: float
         """
         possibe_expected_alt_fraction = [
-            (1 - contam_level) / 2,  # low AF in HET ALT because of contam
+            (1 - contam_level) / 2,  # low AF in HET ALT because of contam doesn't look like ref or alt
             (1 - contam_level),  # this is when a HOM being called as HET because of contam
             (0.5 + contam_level),  # this is when contam looks like ALT
+            (0.5 - contam_level),  # this is when contam don't looks like REF
             contam_level,  # this is when the contam is being called as het
         ]
         max_log_prob = max(
@@ -144,12 +145,15 @@ def maximum_likelihood_contamination(
 
 
 @validate_arguments
-def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Interval]] = None) -> List[VariantPosition]:
+def collect_variants_from_vcf(
+    vcf_file: FilePath, intervals: Optional[List[Interval]] = None, coverage_threshold: int = 0
+) -> List[VariantPosition]:
     """
     extract variant info from vcf file
 
     :param FilePath vcf_file: vcf file path
     :param Optional[list[Interval]] intervals: a list of intervals to filter the vcf file, if none, then all variants are used
+    :param int coverage_threshold: remove variants with total read count below this threshold
     :return: a list of VariantPosition object
     :rtype: list[VariantPosition]
     """
@@ -164,22 +168,23 @@ def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Inter
         for variant in variants:
             if "PASS" in variant.filter or len(variant.filter) == 0:
                 total_depth: int = variant.samples[0]["DP"]
-                alt: int = variant.samples[0]["GT"][1]
-                variant_depth: int = variant.samples[0]["AD"][alt]
-                variant_type: VariantType = (
-                    VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL  # type: ignore
-                )
-                gt_field: tuple[int, int] = variant.samples[0]["GT"]  # e.g. (0, 1)
-                genotype: Genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM
-
-                variant_list.append(
-                    VariantPosition(
-                        total_depth=total_depth,
-                        alt_depth=variant_depth,
-                        genotype=genotype,
-                        variant_type=variant_type,
+                if coverage_threshold <= total_depth:
+                    alt: int = variant.samples[0]["GT"][1]
+                    variant_depth: int = variant.samples[0]["AD"][alt]
+                    variant_type: VariantType = (
+                        VariantType.SNV if len(variant.alleles[1]) == len(variant.alleles[0]) else VariantType.INDEL  # type: ignore
                     )
-                )
+                    gt_field: tuple[int, int] = variant.samples[0]["GT"]  # e.g. (0, 1)
+                    genotype: Genotype = Genotype.HET if len(set(gt_field)) > 1 else Genotype.HOM
+
+                    variant_list.append(
+                        VariantPosition(
+                            total_depth=total_depth,
+                            alt_depth=variant_depth,
+                            genotype=genotype,
+                            variant_type=variant_type,
+                        )
+                    )
     return variant_list
 
 
@@ -187,6 +192,7 @@ def collect_variants_from_vcf(vcf_file: FilePath, intervals: Optional[List[Inter
 def estimate_vcf_contamination_level(
     vcf_file: FilePath,
     snv_only: bool = True,
+    coverage_threshold: int = 0,
     intervals: Optional[List[Interval]] = None,
 ) -> float:
     """
@@ -194,10 +200,11 @@ def estimate_vcf_contamination_level(
 
     :param Path vcf_file: a vcf file for a sample
     :param Optional[list[Interval]] intervals: a list of intervals to filter the vcf file, if none, then all variants are used
+    :param int coverage_threshold: ignore variants with total read count below this threshold
     :return: contamination level
     :rtype: float
     """
-    variants = collect_variants_from_vcf(vcf_file, intervals=intervals)
+    variants = collect_variants_from_vcf(vcf_file, intervals=intervals, coverage_threshold=coverage_threshold)
     if snv_only:
         variants = [variant for variant in variants if variant.variant_type == VariantType.SNV]
     logging.debug(f"Processing {len(variants)} variants")
