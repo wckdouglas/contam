@@ -43,7 +43,8 @@ For a heterozygous variant, the probablity of observing the expected variant-all
 1. $(1 - c)/2$, when a low alternate allele frequency is observed because of the contamination
 2. $(1 - c)$, when a homozygous variant being called as a heterozygous variant because of the contamination
 3. $(0.5 + c)$, when the contamination looks like the alternate allele, such that the alternate allele frequency is higher than expected
-4. $c$, when the contamination itself is called as low variant frequency heterozygous variant
+4. $(0.5 - c)$, when the contamination looks like the reference allele, such that the alternate allele frequency is lower than expected
+5. $c$, when the contamination itself is called as low variant frequency heterozygous variant
 
 After evaluating these cases, we will pick the highest probability event when summing the log likelihoods for the given contamination level.
 

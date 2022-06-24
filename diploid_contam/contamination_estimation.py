@@ -76,7 +76,7 @@ class VariantPosition:
             (1 - contam_level) / 2,  # low AF in HET ALT because of contam doesn't look like ref or alt
             (1 - contam_level),  # this is when a HOM being called as HET because of contam
             (0.5 + contam_level),  # this is when contam looks like ALT
-            (0.5 - contam_level),  # this is when contam don't looks like REF
+            (0.5 - contam_level),  # this is when contam looks like REF
             contam_level,  # this is when the contam is being called as het
         ]
         max_log_prob = max(
@@ -140,8 +140,11 @@ def maximum_likelihood_contamination(
     """
 
     likelihoods: dict[float, float] = estimate_contamination(variant_positions)
-    sorted_likelihoods: list[tuple[float, float]] = sorted(likelihoods.items(), key=lambda k: k[1])  # ascending sort
-    return sorted_likelihoods[-1][0]  # the key of the last item is the max likelihood
+    maximum_likelihood_value = max(likelihoods.values())
+    # underestimating contam level by using the lower contam level
+    return min(
+        contam_level for contam_level, likelihood in likelihoods.items() if likelihood == maximum_likelihood_value
+    )
 
 
 @validate_arguments
