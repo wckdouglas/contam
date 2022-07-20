@@ -19,7 +19,8 @@ fn calc_loglik_for_hypothetical_contam_level(
     let binom = Binomial::new(
         hypothetical_contamination_level,
         variant_position.total_read_depth as u64,
-    ).unwrap();
+    )
+    .unwrap();
     let p = binom.ln_pmf(variant_position.alt_depth as u64);
     return p;
 }
@@ -51,23 +52,24 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     ];
     let max_log_prob = possibe_expected_alt_fraction
         .into_iter()
-        .map(|contam_level| calc_loglik_for_hypothetical_contam_level(variant_position, contam_level))
+        .map(|contam_level| {
+            calc_loglik_for_hypothetical_contam_level(variant_position, contam_level)
+        })
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap();
     return max_log_prob;
 }
 
-
 /// Helper function to calculate the log probability of a given
-/// variant 
-/// 
+/// variant
+///
 /// # Arguments
 /// --------
 /// * variant_position: A VariantPosition object to be evaluated
 /// * hypothetical_contamination_level: hypothetical contamination level to test
-/// 
+///
 /// # Returns
-/// 
+///
 /// log probability of seeing the given variant alt coutn
 fn calaulate_loglik_for_variant_position(
     variant_position: &VariantPosition,
@@ -94,12 +96,12 @@ fn calaulate_loglik_for_variant_position(
 ///
 /// # Arguments
 /// ----------------
-/// 
+///
 /// * `variant_vector` - a list of VariantPosition
 /// * `hypothetical_contamination_level` - the hypthetical contamination level
-/// 
+///
 /// Returns
-/// 
+///
 /// the sum of log probabilty of seeing the given list of variants at the given contam level
 pub fn calculate_contam_hypothesis(
     variant_vector: &Vec<VariantPosition>,

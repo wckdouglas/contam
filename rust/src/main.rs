@@ -1,6 +1,6 @@
-use std::vec::Vec;
 use std::fs::File;
 use std::io::Write;
+use std::vec::Vec;
 
 extern crate rust_htslib;
 extern crate serde;
@@ -20,10 +20,8 @@ use vcfreader::build_variant_list;
 #[derive(Serialize, Deserialize, Debug)]
 struct Output {
     pub contamination_level: f64,
-    pub probability: f64,
     pub log_likelihood: f64,
 }
-
 
 fn main() {
     let vcf_file: &str = &"/Users/douglas.wu/code/contam/data/test.vcf";
@@ -36,7 +34,6 @@ fn main() {
         let p: f64 = calculate_contam_hypothesis(&variant_vector, hypothetical_contamination_level);
         let output: Output = Output {
             contamination_level: hypothetical_contamination_level,
-            probability: p.exp(),
             log_likelihood: p,
         };
         result_vector.push(output);

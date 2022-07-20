@@ -1,6 +1,6 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
-use crate::rust_htslib::bcf::{Reader, Read, Record};
 use crate::rust_htslib::bcf::record::FilterId;
+use crate::rust_htslib::bcf::{Read, Reader, Record};
 use std::vec::Vec;
 
 pub fn build_variant_list(vcf_file: &str) -> Vec<VariantPosition> {
@@ -9,27 +9,33 @@ pub fn build_variant_list(vcf_file: &str) -> Vec<VariantPosition> {
     for (_i, record_result) in bcf.records().enumerate() {
         let record: Record = record_result.expect("Fail to read record");
 
-        if record.filters().map(|filter| filter.is_pass() ).all(|x| !!x) {
+        if record.filters().map(|filter| filter.is_pass()).all(|x| !!x) {
             // only look at pass filter variants
-            
-            let read_depth = record.format(b"DP").integer().ok().expect("Error reading DP field.");
-            let allele_depth = record.format(b"AD").integer().ok().expect("Error reading AD field.");
+
+            let read_depth = record
+                .format(b"DP")
+                .integer()
+                .ok()
+                .expect("Error reading DP field.");
+            let allele_depth = record
+                .format(b"AD")
+                .integer()
+                .ok()
+                .expect("Error reading AD field.");
             let gts = record.genotypes().expect("Error reading genotypes");
             let alt_call = gts.get(0)[1].index().unwrap() as usize; // from the only sample, and diploid call (2nd genotype is non-ref)
 
             let mut zygosity = Zygosity::HOMOZYGOUS;
             if gts.get(0)[0] != gts.get(0)[1] {
                 zygosity = Zygosity::HETEROZYGOUS;
-            } 
+            }
 
-            variants.push(
-                VariantPosition {
-                    total_read_depth: read_depth[0][0] as usize, // only sample in the vcf
-                    alt_depth: allele_depth[0][alt_call] as usize,
-                    variant_type: VariantType::SNV, // TODO: fix this
-                    zygosity: zygosity,
-                }
-            );
+            variants.push(VariantPosition {
+                total_read_depth: read_depth[0][0] as usize, // only sample in the vcf
+                alt_depth: allele_depth[0][alt_call] as usize,
+                variant_type: VariantType::SNV, // TODO: fix this
+                zygosity: zygosity,
+            });
         }
     }
     eprintln!("Collected {} variants from {}", variants.len(), vcf_file);

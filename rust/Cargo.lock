@@ -12,6 +12,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "args"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4b7432c65177b8d5c032d56e020dd8d407e939468479fc8c300e2d93e6d970b"
+dependencies = [
+ "getopts",
+ "log",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -107,6 +117,7 @@ dependencies = [
 name = "diploid-contam"
 version = "0.1.0"
 dependencies = [
+ "args",
  "rust-htslib",
  "serde",
  "serde_json",
@@ -130,6 +141,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fc7a9dc005c944c98a935e7fd626faf5bf7e5a609f94bc13e42fc4a02e52593"
 dependencies = [
  "quick-error",
+]
+
+[[package]]
+name = "getopts"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14dbbfd5c71d70241ecf9e6f13737f7b5ce823821063188d7e46c41d371eebd5"
+dependencies = [
+ "unicode-width",
 ]
 
 [[package]]
@@ -236,6 +256,15 @@ name = "linear-map"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfae20f6b19ad527b550c223fddc3077a547fc70cda94b9b566575423fd303ee"
+
+[[package]]
+name = "log"
+version = "0.4.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
+dependencies = [
+ "cfg-if",
+]
 
 [[package]]
 name = "lzma-sys"
@@ -565,6 +594,12 @@ name = "unicode-segmentation"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e8820f5d777f6224dc4be3632222971ac30164d4a258d595640799554ebfd99"
+
+[[package]]
+name = "unicode-width"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ed742d4ea2bd1176e236172c8429aaf54486e7ac098db29ffe6529e0ce50973"
 
 [[package]]
 name = "url"
