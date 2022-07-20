@@ -51,7 +51,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     ];
     let max_log_prob = possibe_expected_alt_fraction
         .into_iter()
-        .map(|contam| calc_loglik_for_hypothetical_contam_level(variant_position, contam))
+        .map(|contam_level| calc_loglik_for_hypothetical_contam_level(variant_position, contam_level))
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap();
     return max_log_prob;

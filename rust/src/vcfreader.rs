@@ -17,12 +17,17 @@ pub fn build_variant_list(vcf_file: &str) -> Vec<VariantPosition> {
             let gts = record.genotypes().expect("Error reading genotypes");
             let alt_call = gts.get(0)[1].index().unwrap() as usize; // from the only sample, and diploid call (2nd genotype is non-ref)
 
+            let mut zygosity = Zygosity::HOMOZYGOUS;
+            if gts.get(0)[0] != gts.get(0)[1] {
+                zygosity = Zygosity::HETEROZYGOUS;
+            } 
+
             variants.push(
                 VariantPosition {
                     total_read_depth: read_depth[0][0] as usize, // only sample in the vcf
                     alt_depth: allele_depth[0][alt_call] as usize,
-                    variant_type: VariantType::SNV,
-                    zygosity: Zygosity::HOMOZYGOUS,
+                    variant_type: VariantType::SNV, // TODO: fix this
+                    zygosity: zygosity,
                 }
             );
         }
