@@ -1,5 +1,7 @@
 /// Defining models for the code
-/// 
+///
+use serde::{Deserialize, Serialize};
+
 #[derive(Eq, PartialEq)]
 pub enum VariantType {
     /// variant types in the vcf file
@@ -12,6 +14,12 @@ pub enum Zygosity {
     /// zygostiy of a variant
     HOMOZYGOUS,
     HETEROZYGOUS,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ContamProbResult {
+    pub contamination_level: f64,
+    pub log_likelihood: f64,
 }
 
 pub struct VariantPosition {
