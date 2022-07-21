@@ -145,7 +145,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "diploid-contam"
+name = "diploid-contam-estimator"
 version = "0.1.0"
 dependencies = [
  "clap",

@@ -21,8 +21,8 @@ fn calc_loglik_for_hypothetical_contam_level(
         variant_position.total_read_depth as u64,
     )
     .unwrap();
-    let p = binom.ln_pmf(variant_position.alt_depth as u64);
-    return p;
+    let log_prob = binom.ln_pmf(variant_position.alt_depth as u64);
+    return log_prob;
 }
 
 /// return log probability of a heterozygous variant for a given contamination level
@@ -75,9 +75,9 @@ fn calaulate_loglik_for_variant_position(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
 ) -> f64 {
-    let mut p: f64 = 0.0;
+    let mut log_prob: f64 = 0.0;
     if variant_position.variant_type == VariantType::SNV {
-        p = match variant_position.zygosity {
+        log_prob = match variant_position.zygosity {
             Zygosity::HOMOZYGOUS => calc_loglik_for_hypothetical_contam_level(
                 variant_position,
                 1.0 - hypothetical_contamination_level,
@@ -88,7 +88,7 @@ fn calaulate_loglik_for_variant_position(
             ),
         }
     }
-    return p;
+    return log_prob;
 }
 
 /// Given a list of variant position and a hypothetical contamination level
