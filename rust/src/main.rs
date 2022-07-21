@@ -77,31 +77,42 @@ fn parse_args() -> ArgMatches {
 }
 
 fn main() {
-    //let vcf_file: &str = &"/Users/wckdouglas/code/contam/data/test.vcf";
+    // parse cli argumnets
     let args = parse_args();
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
     let output_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
     let output_variant_json: &str = args.value_of::<&str>("debug_variant_json").unwrap_or("no_file");
     let snv_only_flag: bool = args.is_present("snv_only");
+
+    // collect varaints
     let variant_vector: Vec<VariantPosition> = build_variant_list(&*vcf_file, snv_only_flag);
+
+    // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM);
     let mut best_guess_contam_level: f64 = 0.0;
     let mut max_log_likelihood: f64 = 1.0;
     for hypothetical_contamination_level in (1..MAX_CONTAM).map(|x| x as f64 * 0.001) {
-        let p: f64 = calculate_contam_hypothesis(&variant_vector, hypothetical_contamination_level);
+        // loop over the hypothetical contamination level
+        // and calculate the log likelihood
+        let log_prob: f64 = calculate_contam_hypothesis(&variant_vector, hypothetical_contamination_level);
+
+        // store them into a result object
         let output: ContamProbResult = ContamProbResult {
             contamination_level: hypothetical_contamination_level,
-            log_likelihood: p,
+            log_likelihood: log_prob,
         };
-        result_vector.push(output);
+        result_vector.push(output); // and put them in to a result array
 
-        if max_log_likelihood > 0.0 || max_log_likelihood < p {
+        if max_log_likelihood > 0.0 || max_log_likelihood < log_prob {
+            // if there's a high likelihood contamination level,
+            // keep it!
             best_guess_contam_level = hypothetical_contamination_level;
-            max_log_likelihood = p;
+            max_log_likelihood = log_prob;
         }
     }
 
     if output_json.ne("no_file") {
+        // write result json file
         let json_string = serde_json::to_string_pretty(&result_vector).unwrap();
         let mut output_file = File::create(output_json).unwrap();
         write!(output_file, "{}", json_string).unwrap();
@@ -109,12 +120,14 @@ fn main() {
     }
 
     if output_variant_json.ne("no_file") {
+        // write variant json file
         let json_string = serde_json::to_string_pretty(&variant_vector).unwrap();
         let mut output_file = File::create(output_variant_json).unwrap();
         write!(output_file, "{}", json_string).unwrap();
         println!("Written debug file at: {}", output_variant_json)
     }
 
+    // this is the resultant number that we want!
     println!(
         "Maximum likelihood contamination level: {}",
         best_guess_contam_level
