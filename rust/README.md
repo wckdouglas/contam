@@ -11,8 +11,7 @@ $ cargo run -i input_vcf -d debug_json
 or:
 
 ```
-$ diploid-contam-estimator  -h
-diploid-contam-estimator 0.1.0
+$ diploid-contam-estimator 0.1.0
 Douglas Wu <wckdouglas@gmail.com>
 Estimating contamination level from a diploid VCF file
 
@@ -37,8 +36,21 @@ USAGE:
     diploid-contam-estimator [OPTIONS] --in-vcf <in_vcf>
 
 OPTIONS:
-    -d, --debug-json <debug_json>    A json output file for storing all intermediate log prob
-    -h, --help                       Print help information
-    -i, --in-vcf <in_vcf>            A diploid vcf file for estimating contamination
-    -V, --version                    Print version information
+    -d, --debug-json <debug_json>
+            A json output file for storing all intermediate log prob
+
+    -h, --help
+            Print help information
+
+    -i, --in-vcf <in_vcf>
+            A diploid vcf file for estimating contamination
+
+        --snv-only
+            Only use SNV (ignore indel) for contamination estimations
+
+    -v, --debug-variant-json <debug_variant_json>
+            A json output file for storing all input variants used for calculation
+
+    -V, --version
+            Print version information
 ```
