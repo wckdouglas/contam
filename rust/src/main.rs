@@ -57,6 +57,20 @@ fn parse_args() -> ArgMatches {
                 .required(false)
                 .help("A json output file for storing all intermediate log prob"),
         )
+        .arg(
+            Arg::with_name("debug_variant_json")
+                .short('v')
+                .long("debug-variant-json")
+                .takes_value(true)
+                .required(false)
+                .help("A json output file for storing all input variants used for calculation"),
+        )
+        .arg(
+            Arg::with_name("snv_only")
+                .long("snv-only")
+                .takes_value(false)
+                .help("Only use SNV (ignore indel) for contamination estimations"),
+        )
         .get_matches();
     return matches;
 }
@@ -66,7 +80,9 @@ fn main() {
     let args = parse_args();
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
     let output_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
-    let variant_vector: Vec<VariantPosition> = build_variant_list(&*vcf_file);
+    let output_variant_json: &str = args.value_of::<&str>("debug_variant_json").unwrap_or("no_file");
+    let snv_only_flag: bool = args.is_present("snv_only");
+    let variant_vector: Vec<VariantPosition> = build_variant_list(&*vcf_file, snv_only_flag);
     let mut result_vector: Vec<ContamProbResult> = Vec::new();
     let mut best_guess_contam_level: f64 = 0.0;
     let mut max_log_likelihood: f64 = 1.0;
@@ -90,6 +106,14 @@ fn main() {
         write!(output_file, "{}", json_string).unwrap();
         println!("Written debug file at: {}", output_json)
     }
+
+    if output_variant_json.ne("no_file") {
+        let json_string = serde_json::to_string_pretty(&variant_vector).unwrap();
+        let mut output_file = File::create(output_variant_json).unwrap();
+        write!(output_file, "{}", json_string).unwrap();
+        println!("Written debug file at: {}", output_variant_json)
+    }
+
     println!(
         "Maximum likelihood contamination level: {}",
         best_guess_contam_level
