@@ -25,7 +25,7 @@ from tests import MOCK_VARIANT_POSITIONS, MOCK_VCF_RECORDS, PysamFakeVcf
         ("HET 10% contam HET-called (0.1)", 100, 10, "HET", 0.1, -2.0259),
         ("HET 10% contam HET-called (0.0)", 100, 10, "HET", 0.0, -38.8323),
         ("HET 10% contam (0.0)", 100, 40, "HET", 0.0, -4.52415),
-        ("HET 10% contam (0.1)", 100, 40, "HET", 0.1, -3.01996),
+        ("HET 10% contam (0.1)", 100, 40, "HET", 0.1, -2.51060),
         ("HET 10% contam looks like ALT (0.0)", 100, 60, "HET", 0.0, -4.52415),
         ("HET 10% contam looks like ALT (0.1)", 100, 60, "HET", 0.1, -2.51060),
         ("HET 10% contam a HOM ALT (0.1)", 100, 90, "HET", 0.1, -2.025973),
