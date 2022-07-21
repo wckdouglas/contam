@@ -44,6 +44,7 @@ impl VariantPosition {
         zygosity: Zygosity,
     ) -> Self {
         if total_read_depth < alt_depth {
+            // validation of the input
             panic!("Total read depth should be >= alt depth")
         }
         Self {

@@ -88,9 +88,9 @@ fn main() {
     let variant_vector: Vec<VariantPosition> = build_variant_list(&*vcf_file, snv_only_flag);
 
     // using variants as input to estimate contamination
-    let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM);
-    let mut best_guess_contam_level: f64 = 0.0;
-    let mut max_log_likelihood: f64 = 1.0;
+    let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result
+    let mut best_guess_contam_level: f64 = 0.0; // initialize the final contamination level variable
+    let mut max_log_likelihood: f64 = 1.0; // initialize something so that we can track the running max log prob
     for hypothetical_contamination_level in (1..MAX_CONTAM).map(|x| x as f64 * 0.001) {
         // loop over the hypothetical contamination level
         // and calculate the log likelihood
