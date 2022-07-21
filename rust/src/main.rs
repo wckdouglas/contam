@@ -34,6 +34,7 @@ const PROGRAM_DESC: &'static str =
         5. contamination being called as ALT
 ";
 const PROGRAM_NAME: &'static str = "diploid-contam-estimator";
+const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
 
 /// arg parser to get input from command line
 fn parse_args() -> ArgMatches {
@@ -83,10 +84,10 @@ fn main() {
     let output_variant_json: &str = args.value_of::<&str>("debug_variant_json").unwrap_or("no_file");
     let snv_only_flag: bool = args.is_present("snv_only");
     let variant_vector: Vec<VariantPosition> = build_variant_list(&*vcf_file, snv_only_flag);
-    let mut result_vector: Vec<ContamProbResult> = Vec::new();
+    let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM);
     let mut best_guess_contam_level: f64 = 0.0;
     let mut max_log_likelihood: f64 = 1.0;
-    for hypothetical_contamination_level in (1..300).map(|x| x as f64 * 0.001) {
+    for hypothetical_contamination_level in (1..MAX_CONTAM).map(|x| x as f64 * 0.001) {
         let p: f64 = calculate_contam_hypothesis(&variant_vector, hypothetical_contamination_level);
         let output: ContamProbResult = ContamProbResult {
             contamination_level: hypothetical_contamination_level,
