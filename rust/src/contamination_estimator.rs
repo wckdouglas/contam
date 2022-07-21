@@ -122,3 +122,31 @@ pub fn calculate_contam_hypothesis(
         .sum::<f64>();
     return log_prob_sum;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assert_approx_eq::assert_approx_eq;
+    use rstest::*;
+
+    #[rstest]
+    #[case(50, 25, 0.2, -13.3439800878)]
+    #[case(50, 25, 0.3, -6.54563720080)]
+    #[case(50, 10, 0.3, -3.25401113686)]
+    fn test_calc_loglik_for_hypothetical_contam_level(
+        #[case] total_read_depth: usize,
+        #[case] alt_depth: usize,
+        #[case] hypothetical_contamination_level: f64,
+        #[case] expected_out: f64,
+    ) {
+        let variant = VariantPosition {
+            total_read_depth: total_read_depth,
+            alt_depth: alt_depth,
+            variant_type: VariantType::SNV,
+            zygosity: Zygosity::HETEROZYGOUS,
+        };
+        let p =
+            calc_loglik_for_hypothetical_contam_level(&variant, hypothetical_contamination_level);
+        assert_approx_eq!(p, expected_out);
+    }
+}
