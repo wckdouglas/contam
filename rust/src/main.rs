@@ -72,6 +72,14 @@ fn parse_args() -> ArgMatches {
                 .takes_value(false)
                 .help("Only use SNV (ignore indel) for contamination estimations"),
         )
+        .arg(
+            Arg::with_name("depth_threshold")
+                .short('m')
+                .long("min-depth")
+                .takes_value(true)
+                .default_value("0")
+                .help("Minimum depth for a variant to be considered (i.e. DP tag; default: 0"),
+        )
         .get_matches();
     return matches;
 }
@@ -82,10 +90,11 @@ fn main() {
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
     let output_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
     let output_variant_json: &str = args.value_of::<&str>("debug_variant_json").unwrap_or("no_file");
+    let depth_threshold: usize = args.value_of::<&str>("depth_threshold").unwrap_or("0").to_string().parse::<usize>().unwrap();
     let snv_only_flag: bool = args.is_present("snv_only");
 
     // collect varaints
-    let variant_vector: Vec<VariantPosition> = build_variant_list(&*vcf_file, snv_only_flag);
+    let variant_vector: Vec<VariantPosition> = build_variant_list(&*vcf_file, snv_only_flag, depth_threshold);
 
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result
