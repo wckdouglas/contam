@@ -79,7 +79,7 @@ fn parse_args() -> ArgMatches {
                 .long("min-depth")
                 .takes_value(true)
                 .default_value("0")
-                .help("Minimum depth for a variant to be considered (i.e. DP tag; default: 0"),
+                .help("Minimum depth for a variant to be considered (i.e. DP tag)"),
         )
         .get_matches();
     return matches;
