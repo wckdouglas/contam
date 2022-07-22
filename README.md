@@ -58,13 +58,14 @@ We also wrote the code in rust.
 To run the code:
 
 ```{bash}
-$ cargo run -i input_vcf -d debug_json
+$ cargo run -- -i data/test.vcf -d debug_json
 ```
 
 or:
 
 ```
-$ diploid-contam-estimator 0.1.0
+$ cargo install --path .
+$ target/release/diploid-contam-estimator
 Douglas Wu <wckdouglas@gmail.com>
 Estimating contamination level from a diploid VCF file
 
@@ -97,6 +98,12 @@ OPTIONS:
 
     -i, --in-vcf <in_vcf>
             A diploid vcf file for estimating contamination
+
+    -m, --min-depth <depth_threshold>
+            Minimum depth for a variant to be considered (i.e. DP tag) [default: 0]
+
+    -o, --out-json <out_json>
+            A json output file for storing the maximum likelihood contam level for the vcf file
 
         --snv-only
             Only use SNV (ignore indel) for contamination estimations
