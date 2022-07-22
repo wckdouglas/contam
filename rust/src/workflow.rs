@@ -15,12 +15,31 @@ use log::info;
 
 const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
 
+
+/// write string to file
+/// 
+/// Arguments:
+/// - filename: the file name of the new file to be written to
+/// - json_string: String to be written to the file
 pub fn write_json(filename: &str, json_string: String) {
     let mut output_file = File::create(filename).unwrap();
     write!(output_file, "{}", json_string).unwrap();
     info!("Written debug file at: {}", filename)
 }
 
+
+/// the actual workflow to takes in a variant vcf file and calcualte the 
+/// contamination level
+/// 
+/// Arguments:
+/// 
+/// - vcf_file: the file path to the input vcf file for the analysis
+/// - snv_only_flag: boolean flag indicating whether we should only look at SNV instead of both SNV and indel
+/// - depth_threshold: removing all variants with read depth below this threshold
+/// - prob_json: for debug, a json file name for writing the contam level and the 
+///              respecitive log likelihoos into ("_no_file" will turn off writing a file)
+/// - prob_json: for debug, a json file name for writing the list of variants that are being 
+///              used for the contam level compuatation ("_no_file" will turn off writing a file)
 pub fn workflow(
     vcf_file: &str,
     snv_only_flag: bool,
