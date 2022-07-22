@@ -45,7 +45,8 @@ pub fn workflow(
             contamination_level: hypothetical_contamination_level,
             log_likelihood: log_prob,
         };
-        result_vector.push(output); // and put them in to a result array
+        // and put them in to a result array
+        result_vector.push(output);
 
         if max_log_likelihood > 0.0 || max_log_likelihood < log_prob {
             // if there's a high likelihood contamination level,
