@@ -6,19 +6,20 @@ use std::vec::Vec;
 
 use log::info;
 
-
-
-
 /// Colelcting variants from a vcf file
-/// 
+///
 /// Arguments:
 /// - vcf_file: file path to the vcf file we want to parse
 /// - snv_only_flag: boolean flag indicating whether we shopuld only look at SNV instead of both SNV and indel
 /// - depth_threshold: we will skip any variants with DP tag lower than this threshold
-/// 
+///
 /// Returns:
 /// - a list of varaints that passed the given filters
-pub fn build_variant_list(vcf_file: &str, snv_only_flag: bool, depth_threshold: usize) -> Vec<VariantPosition> {
+pub fn build_variant_list(
+    vcf_file: &str,
+    snv_only_flag: bool,
+    depth_threshold: usize,
+) -> Vec<VariantPosition> {
     let mut vcf: Reader = Reader::from_path(vcf_file).expect("Error opening file.");
 
     let mut variants: Vec<VariantPosition> = Vec::new();
@@ -33,9 +34,8 @@ pub fn build_variant_list(vcf_file: &str, snv_only_flag: bool, depth_threshold: 
                 .integer()
                 .ok()
                 .expect("Error reading DP field.")[0][0] as usize;
-            
-            if read_depth >= depth_threshold {
 
+            if read_depth >= depth_threshold {
                 let allele_depth = record
                     .format(b"AD")
                     .integer()
@@ -66,7 +66,8 @@ pub fn build_variant_list(vcf_file: &str, snv_only_flag: bool, depth_threshold: 
                     // whether we want snv-only or not
                     // make a new VariantPosition here and put into the list
                     variants.push(VariantPosition::new(
-                        from_utf8(record.header().rid2name(record.rid().unwrap()).unwrap()).unwrap(),
+                        from_utf8(record.header().rid2name(record.rid().unwrap()).unwrap())
+                            .unwrap(),
                         record.pos(),
                         read_depth, // only sample in the vcf
                         allele_depth[0][alt_call] as usize,

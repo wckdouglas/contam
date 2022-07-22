@@ -14,4 +14,4 @@ repos:
     rev: master
     hooks:
     -   id: fmt
-        args: ['--verbose', '--edition', '2018', '--']
+        args: ['--verbose', '--']

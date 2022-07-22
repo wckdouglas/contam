@@ -1,24 +1,20 @@
 use clap::{App, Arg, ArgMatches};
 
-
-
-
 extern crate rust_htslib;
 extern crate serde;
 extern crate serde_json;
 extern crate statrs;
 
-mod model;
 mod contamination_estimator;
+mod model;
 mod vcfreader;
 mod workflow;
 
 use log::info;
 
-use workflow::{write_json, workflow};
+use workflow::{workflow, write_json};
 
-const PROGRAM_DESC: &'static str = 
-    "Estimating contamination level from a diploid VCF file\n\n
+const PROGRAM_DESC: &'static str = "Estimating contamination level from a diploid VCF file\n\n
     The program assume we are dealing with a diploid genome, and using the 
     deviation of allelic balance from the expected allelic frequence for homozygous
     or heterozygous variant calls to compute a contamination value.
@@ -97,16 +93,23 @@ fn main() {
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
     let prob_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
     let out_json: &str = args.value_of::<&str>("out_json").unwrap_or("no_file");
-    let variant_json: &str = args.value_of::<&str>("debug_variant_json").unwrap_or("no_file");
-    let depth_threshold: usize = args.value_of::<&str>("depth_threshold").unwrap_or("0").to_string().parse::<usize>().unwrap();
+    let variant_json: &str = args
+        .value_of::<&str>("debug_variant_json")
+        .unwrap_or("no_file");
+    let depth_threshold: usize = args
+        .value_of::<&str>("depth_threshold")
+        .unwrap_or("0")
+        .to_string()
+        .parse::<usize>()
+        .unwrap();
     let snv_only_flag: bool = args.is_present("snv_only");
 
     let best_guess_contam_level: f64 = workflow(
-        vcf_file, 
-        snv_only_flag, 
-        depth_threshold, 
-        prob_json, 
-        variant_json
+        vcf_file,
+        snv_only_flag,
+        depth_threshold,
+        prob_json,
+        variant_json,
     );
 
     // this is the resultant number that we want!
@@ -115,9 +118,8 @@ fn main() {
         best_guess_contam_level
     );
 
-    if out_json.ne("no_file"){
+    if out_json.ne("no_file") {
         let json_string = format!("{{\n  \"{}\": {}\n}}\n", vcf_file, best_guess_contam_level);
         write_json(out_json, json_string)
     }
-
 }
