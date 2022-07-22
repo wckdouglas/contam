@@ -87,5 +87,5 @@ pub fn workflow(
         write_json(variant_json, json_string)
     }
 
-    return best_guess_contam_level;
+    best_guess_contam_level
 }

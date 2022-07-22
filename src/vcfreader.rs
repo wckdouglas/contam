@@ -79,5 +79,5 @@ pub fn build_variant_list(
         }
     }
     info!("Collected {} variants from {}", variants.len(), vcf_file);
-    return variants;
+    variants
 }

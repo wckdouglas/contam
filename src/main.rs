@@ -14,7 +14,7 @@ use log::info;
 
 use workflow::{workflow, write_json};
 
-const PROGRAM_DESC: &'static str = "Estimating contamination level from a diploid VCF file\n\n
+const PROGRAM_DESC: &str = "Estimating contamination level from a diploid VCF file\n\n
     The program assume we are dealing with a diploid genome, and using the 
     deviation of allelic balance from the expected allelic frequence for homozygous
     or heterozygous variant calls to compute a contamination value.
@@ -28,7 +28,7 @@ const PROGRAM_DESC: &'static str = "Estimating contamination level from a diploi
         4. contamination that looks like the REF allele: we expect lower alt allele frequency
         5. contamination being called as ALT
 ";
-const PROGRAM_NAME: &'static str = "diploid-contam-estimator";
+const PROGRAM_NAME: &str = "diploid-contam-estimator";
 
 /// arg parser to get input from command line
 fn parse_args() -> ArgMatches {
@@ -83,7 +83,7 @@ fn parse_args() -> ArgMatches {
                 .help("Minimum depth for a variant to be considered (i.e. DP tag)"),
         )
         .get_matches();
-    return matches;
+    matches
 }
 
 fn main() {

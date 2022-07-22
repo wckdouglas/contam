@@ -22,7 +22,7 @@ fn calc_loglik_for_hypothetical_contam_level(
     )
     .unwrap();
     let log_prob = binom.ln_pmf(variant_position.alt_depth as u64);
-    return log_prob;
+    log_prob
 }
 
 /// return log probability of a heterozygous variant for a given contamination level
@@ -57,7 +57,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
         })
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap();
-    return max_log_prob;
+    max_log_prob
 }
 
 /// Helper function to calculate the log probability of a given
@@ -88,7 +88,7 @@ fn calaulate_loglik_for_variant_position(
             ),
         }
     }
-    return log_prob;
+    log_prob
 }
 
 /// Given a list of variant position and a hypothetical contamination level
@@ -107,12 +107,12 @@ pub fn calculate_contam_hypothesis(
     variant_vector: &Vec<VariantPosition>,
     hypothetical_contamination_level: f64,
 ) -> f64 {
-    if hypothetical_contamination_level < 0.0 || hypothetical_contamination_level >= 1.0 {
+    if !(0.0..1.0).contains(&hypothetical_contamination_level) {
         panic!("Contamination level must be > 0 and <= 1");
     }
 
     let log_prob_sum: f64 = variant_vector
-        .into_iter()
+        .iter()
         .map(|variant_position| {
             calaulate_loglik_for_variant_position(
                 variant_position,
@@ -120,7 +120,7 @@ pub fn calculate_contam_hypothesis(
             )
         })
         .sum::<f64>();
-    return log_prob_sum;
+    log_prob_sum
 }
 
 #[cfg(test)]
@@ -130,23 +130,30 @@ mod tests {
     use rstest::*;
 
     #[rstest]
-    #[case(50, 25, 0.2, -13.3439800878)]
-    #[case(50, 25, 0.3, -6.54563720080)]
-    #[case(50, 10, 0.3, -3.25401113686)]
-    fn test_calc_loglik_for_hypothetical_contam_level(
+    #[case(50, 25, 0.2, -3.20735238519, Zygosity::HETEROZYGOUS)]
+    #[case(50, 25, 0.3, -4.54456950896, Zygosity::HETEROZYGOUS)]
+    #[case(50, 10, 0.3, -1.96740651296, Zygosity::HETEROZYGOUS)]
+    #[case(50, 40, 0.1, -4.18755689231, Zygosity::HOMOZYGOUS)] // homozygous
+    #[case(50, 40, 0.1, -4.18755689231, Zygosity::HETEROZYGOUS)] // case 2 in HET
+    #[case(50, 30, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS)] // case 3 in HET
+    #[case(50, 20, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS)] // case 3 in HET
+    #[case(50, 5, 0.1,  -1.68780709970, Zygosity::HETEROZYGOUS)] // case 4 in HET
+    fn test_calaulate_loglik_for_variant_position(
         #[case] total_read_depth: usize,
         #[case] alt_depth: usize,
         #[case] hypothetical_contamination_level: f64,
         #[case] expected_out: f64,
+        #[case] zygosity: Zygosity,
     ) {
-        let variant = VariantPosition {
-            total_read_depth: total_read_depth,
-            alt_depth: alt_depth,
-            variant_type: VariantType::SNV,
-            zygosity: Zygosity::HETEROZYGOUS,
-        };
-        let p =
-            calc_loglik_for_hypothetical_contam_level(&variant, hypothetical_contamination_level);
+        let variant = VariantPosition::new(
+            "X",
+            1,
+            total_read_depth,
+            alt_depth,
+            VariantType::SNV,
+            zygosity,
+        );
+        let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level);
         assert_approx_eq!(p, expected_out);
     }
 }
