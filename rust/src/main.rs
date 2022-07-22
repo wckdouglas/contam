@@ -10,7 +10,7 @@ mod contamination_estimator;
 mod vcfreader;
 mod workflow;
 
-use workflow::workflow;
+use workflow::{write_json, workflow};
 
 const PROGRAM_DESC: &'static str = 
     "Estimating contamination level from a diploid VCF file\n\n
@@ -42,6 +42,14 @@ fn parse_args() -> ArgMatches {
                 .takes_value(true)
                 .required(true)
                 .help("A diploid vcf file for estimating contamination"),
+        )
+        .arg(
+            Arg::with_name("out_json")
+                .short('o')
+                .long("out-json")
+                .takes_value(true)
+                .required(false)
+                .help("A json output file for storing the maximum likelihood contam level for the vcf file"),
         )
         .arg(
             Arg::with_name("debug_json")
@@ -82,6 +90,7 @@ fn main() {
     let args = parse_args();
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
     let prob_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
+    let out_json: &str = args.value_of::<&str>("out_json").unwrap_or("no_file");
     let variant_json: &str = args.value_of::<&str>("debug_variant_json").unwrap_or("no_file");
     let depth_threshold: usize = args.value_of::<&str>("depth_threshold").unwrap_or("0").to_string().parse::<usize>().unwrap();
     let snv_only_flag: bool = args.is_present("snv_only");
@@ -99,4 +108,10 @@ fn main() {
         "Maximum likelihood contamination level: {}",
         best_guess_contam_level
     );
+
+    if out_json.ne("no_file"){
+        let json_string = format!("{{\n  \"{}\": {}\n}}\n", vcf_file, best_guess_contam_level);
+        write_json(out_json, json_string)
+    }
+
 }
