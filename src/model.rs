@@ -57,3 +57,21 @@ impl VariantPosition {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "Total read depth should be >= alt dept")]
+    fn test_variant_position_exception() {
+        let vp = VariantPosition::new(
+            "chrX",
+            1,
+            100,
+            101,
+            VariantType::SNV,
+            Zygosity::HETEROZYGOUS,
+        );
+    }
+}
