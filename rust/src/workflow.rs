@@ -11,12 +11,14 @@ use crate::contamination_estimator::calculate_contam_hypothesis;
 use crate::model::{ContamProbResult, VariantPosition};
 use crate::vcfreader::build_variant_list;
 
+use log::info;
+
 const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
 
 pub fn write_json(filename: &str, json_string: String) {
     let mut output_file = File::create(filename).unwrap();
     write!(output_file, "{}", json_string).unwrap();
-    println!("Written debug file at: {}", filename)
+    info!("Written debug file at: {}", filename)
 }
 
 pub fn workflow(

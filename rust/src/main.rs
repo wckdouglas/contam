@@ -10,6 +10,8 @@ mod contamination_estimator;
 mod vcfreader;
 mod workflow;
 
+use log::info;
+
 use workflow::{write_json, workflow};
 
 const PROGRAM_DESC: &'static str = 
@@ -87,6 +89,7 @@ fn parse_args() -> ArgMatches {
 
 fn main() {
     // parse cli argumnets
+    env_logger::init();
     let args = parse_args();
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
     let prob_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
@@ -104,7 +107,7 @@ fn main() {
     );
 
     // this is the resultant number that we want!
-    println!(
+    info!(
         "Maximum likelihood contamination level: {}",
         best_guess_contam_level
     );

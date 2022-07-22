@@ -4,6 +4,20 @@ use crate::rust_htslib::bcf::{Read, Reader, Record};
 use std::str::from_utf8;
 use std::vec::Vec;
 
+use log::info;
+
+
+
+
+/// Colelcting variants from a vcf file
+/// 
+/// Arguments:
+/// - vcf_file: file path to the vcf file we want to parse
+/// - snv_only_flag: boolean flag indicating whether we shopuld only look at SNV instead of both SNV and indel
+/// - depth_threshold: we will skip any variants with DP tag lower than this threshold
+/// 
+/// Returns:
+/// - a list of varaints that passed the given filters
 pub fn build_variant_list(vcf_file: &str, snv_only_flag: bool, depth_threshold: usize) -> Vec<VariantPosition> {
     let mut vcf: Reader = Reader::from_path(vcf_file).expect("Error opening file.");
 
@@ -63,6 +77,6 @@ pub fn build_variant_list(vcf_file: &str, snv_only_flag: bool, depth_threshold: 
             }
         }
     }
-    eprintln!("Collected {} variants from {}", variants.len(), vcf_file);
+    info!("Collected {} variants from {}", variants.len(), vcf_file);
     return variants;
 }
