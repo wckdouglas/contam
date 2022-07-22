@@ -79,5 +79,27 @@ pub fn build_variant_list(
         }
     }
     info!("Collected {} variants from {}", variants.len(), vcf_file);
-    variants
+    return variants;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    #[case(false, 0, 14)] // all variants
+    #[case(true, 0, 7)] // all SNV
+    #[case(true, 1000, 6)] // all high depth SNV
+    #[case(true, 1100, 1)] // all high depth SNV
+    #[case(true, 1200, 0)] // all high depth SNV
+    fn test_build_variant_list(
+        #[case] snv_only_flag: bool,
+        #[case] depth_threshold: usize,
+        #[case] expected_number_variants: usize,
+    ) {
+        let vcf_file = "data/test.vcf";
+        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
+        assert_eq!(variant_list.len(), expected_number_variants);
+    }
 }
