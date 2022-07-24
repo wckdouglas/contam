@@ -27,7 +27,7 @@ pub struct ContamProbResult {
 pub struct VariantPosition {
     /// data structure for  a variant position
     pub contig: String,
-    pub position: i64,
+    pub position: usize,
     pub total_read_depth: usize, // total read depth at the variant position
     pub alt_depth: usize,        // total read that showed alt alleles in the variant position
     pub variant_type: VariantType, // is it a indel or snv?
@@ -37,7 +37,7 @@ pub struct VariantPosition {
 impl VariantPosition {
     pub fn new(
         contig: &str,
-        position: i64,
+        position: usize,
         total_read_depth: usize,
         alt_depth: usize,
         variant_type: VariantType,

@@ -1,5 +1,6 @@
 use clap::{App, Arg, ArgMatches};
 
+extern crate noodles_vcf;
 extern crate rust_htslib;
 extern crate serde;
 extern crate serde_json;

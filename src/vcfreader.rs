@@ -1,7 +1,14 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
-use crate::rust_htslib::bcf::record::FilterId;
-use crate::rust_htslib::bcf::{Read, Reader, Record};
-use std::str::from_utf8;
+
+use noodles_vcf as vcf;
+use noodles_vcf::header::format::Key;
+use noodles_vcf::record::filters::Filters;
+use noodles_vcf::record::genotypes::genotype::field::Value::{Integer, IntegerArray};
+use noodles_vcf::record::position::Position;
+use noodles_vcf::record::Record;
+use std::io::BufReader;
+
+use std::fs::File;
 use std::vec::Vec;
 
 use log::info;
@@ -20,58 +27,65 @@ pub fn build_variant_list(
     snv_only_flag: bool,
     depth_threshold: usize,
 ) -> Vec<VariantPosition> {
-    let mut vcf: Reader = Reader::from_path(vcf_file).expect("Error opening file.");
+    let mut reader = File::open(vcf_file)
+        .map(BufReader::new)
+        .map(vcf::Reader::new)
+        .unwrap();
+    let raw_header = reader.read_header().expect("Error reading header");
+    let header = raw_header.parse().unwrap();
 
     let mut variants: Vec<VariantPosition> = Vec::new();
-    for (_i, record_result) in vcf.records().enumerate() {
-        let record: Record = record_result.expect("Fail to read record");
+    for result in reader.records(&header) {
+        let record: Record = result.expect("Cannot read vcf record");
 
-        if record.filters().map(|filter| filter.is_pass()).all(|x| !!x) {
+        if record.filters().unwrap().eq(&Filters::Pass) {
             // only look at pass filter variants
 
-            let read_depth = record
-                .format(b"DP")
-                .integer()
-                .ok()
-                .expect("Error reading DP field.")[0][0] as usize;
+            let sample_genotype = record.genotypes().get(0).expect("Error out Alelle 1");
+            let read_depth = match sample_genotype[&Key::ReadDepth].value().expect("DP tag") {
+                Integer(n) => *n,
+                _ => -1,
+            };
 
-            if read_depth >= depth_threshold {
-                let allele_depth = record
-                    .format(b"AD")
-                    .integer()
-                    .ok()
-                    .expect("Error reading AD field.");
-                let gts = record.genotypes().expect("Error reading genotypes");
+            if read_depth >= depth_threshold as i32 {
+                let bad_vec = &vec![None];
+                let allele_depths = match sample_genotype[&Key::ReadDepths].value().expect("AD tag")
+                {
+                    IntegerArray(n) => n,
+                    _ => bad_vec,
+                };
+                // Genotyping sample
+                let gt = sample_genotype.genotype().unwrap().unwrap();
+                let ref_genotype = gt[0].position().unwrap();
+                let alt_genotype = gt[1].position().unwrap();
+
+                let mut zygosity = Zygosity::HETEROZYGOUS;
+                if ref_genotype != alt_genotype {
+                    zygosity = Zygosity::HOMOZYGOUS
+                }
                 // assume theres only one sample in the vcf file hence:  get(0)
                 // and diploid call (2nd genotype is non-ref), hence: [1].index
-                let alt_call = gts.get(0)[1].index().unwrap() as usize;
+                let ref_base = record.reference_bases();
+                let alt_base = &record.alternate_bases()[alt_genotype - 1];
+                let alt_depth = allele_depths[alt_genotype - 1].unwrap() as usize;
 
                 let mut variant_type: VariantType = VariantType::INDEL;
-                if record.alleles()[0].len() == record.alleles()[1].len() {
+                if ref_base.to_string().len() == alt_base.to_string().len() {
                     // this should be testing the len of Vec<u8> where
                     // each item represents a base
                     // only if they are the same length, it's a SNV
                     variant_type = VariantType::SNV;
                 }
 
-                let mut zygosity = Zygosity::HOMOZYGOUS;
-                if gts.get(0)[0] != gts.get(0)[1] {
-                    // if the first genotype != the second genotype
-                    // e.g. 0/1, 0/2
-                    // then it's a heterozygous
-                    zygosity = Zygosity::HETEROZYGOUS;
-                }
-
                 if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
                     // whether we want snv-only or not
                     // make a new VariantPosition here and put into the list
                     variants.push(VariantPosition::new(
-                        from_utf8(record.header().rid2name(record.rid().unwrap()).unwrap())
-                            .unwrap(),
-                        record.pos(),
-                        read_depth, // only sample in the vcf
-                        allele_depth[0][alt_call] as usize,
-                        variant_type, // TODO: fix this
+                        &record.chromosome().to_string(),
+                        usize::try_from(record.position()).unwrap(),
+                        read_depth as usize, // only sample in the vcf
+                        alt_depth,
+                        variant_type,
                         zygosity,
                     ));
                 }
