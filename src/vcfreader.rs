@@ -134,6 +134,7 @@ mod tests {
         VariantType::INDEL
     )]
     #[case(3, Zygosity::HETEROZYGOUS, 441, 978, 38145492, "X", VariantType::SNV)]
+    #[case(13, Zygosity::HOMOZYGOUS, 517, 1131, 38145911, "X", VariantType::SNV)]
     fn test_build_variant_list_constructed_variant_position(
         #[case] record_idx: usize,
         #[case] zygosity: Zygosity,
