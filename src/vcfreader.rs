@@ -56,15 +56,15 @@ pub fn build_variant_list(
                 let ref_genotype = gt[0].position().unwrap();
                 let alt_genotype = gt[1].position().unwrap();
 
-                let mut zygosity = Zygosity::HETEROZYGOUS;
-                if ref_genotype == alt_genotype {
-                    zygosity = Zygosity::HOMOZYGOUS
+                let mut zygosity = Zygosity::HOMOZYGOUS;
+                if ref_genotype != alt_genotype {
+                    zygosity = Zygosity::HETEROZYGOUS
                 }
                 // assume theres only one sample in the vcf file hence:  get(0)
                 // and diploid call (2nd genotype is non-ref), hence: [1].index
                 let ref_base = record.reference_bases();
                 let alt_base = &record.alternate_bases()[alt_genotype - 1];
-                let alt_depth = allele_depths[alt_genotype - 1].unwrap() as usize;
+                let alt_depth = allele_depths[alt_genotype].unwrap() as usize;
 
                 let mut variant_type: VariantType = VariantType::INDEL;
                 if ref_base.to_string().len() == alt_base.to_string().len() {
@@ -112,5 +112,45 @@ mod tests {
         let vcf_file = "data/test.vcf";
         let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
         assert_eq!(variant_list.len(), expected_number_variants);
+    }
+
+    #[rstest]
+    #[case(
+        0,
+        Zygosity::HETEROZYGOUS,
+        552,
+        1152,
+        38144667,
+        "X",
+        VariantType::INDEL
+    )]
+    #[case(
+        1,
+        Zygosity::HETEROZYGOUS,
+        469,
+        1122,
+        38145129,
+        "X",
+        VariantType::INDEL
+    )]
+    #[case(3, Zygosity::HETEROZYGOUS, 441, 978, 38145492, "X", VariantType::SNV)]
+    fn test_build_variant_list_constructed_variant_position(
+        #[case] record_idx: usize,
+        #[case] zygosity: Zygosity,
+        #[case] alt_depth: usize,
+        #[case] total_read_depth: usize,
+        #[case] position: usize,
+        #[case] contig: String,
+        #[case] variant_type: VariantType,
+    ) {
+        let vcf_file = "data/test.vcf";
+        let variant_list = build_variant_list(&vcf_file, false, 0);
+        let record = &variant_list[record_idx];
+        assert_eq!(record.zygosity, zygosity);
+        assert_eq!(record.alt_depth, alt_depth);
+        assert_eq!(record.total_read_depth, total_read_depth);
+        assert_eq!(record.position, position);
+        assert_eq!(record.contig, contig);
+        assert_eq!(record.variant_type, variant_type);
     }
 }
