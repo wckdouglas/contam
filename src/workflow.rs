@@ -82,3 +82,31 @@ pub fn workflow(
 
     best_guess_contam_level
 }
+
+mod tests {
+    use super::*;
+    use serde_json::Value;
+    use std::io::Read;
+
+    #[test]
+    fn test_workflow() {
+        // this is an end to end testing to test everything in
+        // the workflow
+        let best_guess_contam_level =
+            workflow("data/test.vcf", true, 1000, "prob.json", "variants.json");
+        assert_eq!(best_guess_contam_level, 0.046);
+    }
+
+    #[test]
+    fn test_write_json() {
+        let json_string = "{\"data/test.vcf\":0.046 }";
+        write_json("test.json", json_string.to_string());
+
+        let mut file = File::open("test.json").unwrap();
+        let mut data = String::new();
+        file.read_to_string(&mut data).unwrap();
+
+        let json_data: Value = serde_json::from_str(&data).expect("Bad json data?");
+        assert_eq!(json_data["data/test.vcf"], 0.046);
+    }
+}

@@ -10,6 +10,7 @@ mod workflow;
 
 use clap::{App, Arg, ArgMatches};
 use log::info;
+use std::option::Option;
 use workflow::{workflow, write_json};
 
 const PROGRAM_DESC: &str = "Estimating contamination level from a diploid VCF file\n\n
@@ -90,7 +91,7 @@ fn main() {
     let args = parse_args();
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
     let prob_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
-    let out_json: &str = args.value_of::<&str>("out_json").unwrap_or("no_file");
+    let out_json: Option<&str> = args.value_of::<&str>("out_json");
     let variant_json: &str = args
         .value_of::<&str>("debug_variant_json")
         .unwrap_or("no_file");
@@ -116,8 +117,9 @@ fn main() {
         best_guess_contam_level
     );
 
-    if out_json.ne("no_file") {
+    if out_json.is_some() {
         let json_string = format!("{{\n  \"{}\": {}\n}}\n", vcf_file, best_guess_contam_level);
-        write_json(out_json, json_string)
+        write_json(out_json.unwrap(), json_string);
+        info!("Written result json at: {}", out_json.unwrap());
     }
 }
