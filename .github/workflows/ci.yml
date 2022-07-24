@@ -63,7 +63,8 @@ jobs:
           command: build
           args: --release --all-features
 
-      - name: CI
-        run: |
-          cargo test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+
     
