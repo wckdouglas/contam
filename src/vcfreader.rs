@@ -64,7 +64,9 @@ pub fn build_variant_list(
                 // and diploid call (2nd genotype is non-ref), hence: [1].index
                 let ref_base = record.reference_bases();
                 let alt_base = &record.alternate_bases()[alt_genotype - 1];
-                let alt_depth = allele_depths[alt_genotype].unwrap() as usize;
+                let alt_depth = allele_depths[alt_genotype]
+                    .expect("Alt allele depth is unavaliable (AD tag)")
+                    as usize;
 
                 let mut variant_type: VariantType = VariantType::INDEL;
                 if ref_base.to_string().len() == alt_base.to_string().len() {
