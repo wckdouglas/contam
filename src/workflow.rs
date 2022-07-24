@@ -107,7 +107,7 @@ mod tests {
     ) {
         // this is an end to end testing to test everything in
         // the workflow
-        let best_guess_contam_level = workflow(
+        let best_guess_contam_level: f64 = workflow(
             "data/test.vcf",
             snv_only_flag,
             depth_threshold,
