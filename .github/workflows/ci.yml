@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: CI
+    name: python CI
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -58,12 +58,9 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
 
-      - name: CI
-        run: |
-          cargo test
+      - name: CI -- test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
     
