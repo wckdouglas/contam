@@ -4,6 +4,7 @@ use crate::vcfreader::build_variant_list;
 use log::info;
 use std::fs::File;
 use std::io::Write;
+use std::option::Option;
 use std::vec::Vec;
 
 const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
@@ -35,8 +36,8 @@ pub fn workflow(
     vcf_file: &str,
     snv_only_flag: bool,
     depth_threshold: usize,
-    prob_json: &str,
-    variant_json: &str,
+    prob_json: Option<&str>,
+    variant_json: Option<&str>,
 ) -> f64 {
     // collect varaints
     let variant_vector: Vec<VariantPosition> =
@@ -68,33 +69,52 @@ pub fn workflow(
         }
     }
 
-    if prob_json.ne("no_file") {
+    if prob_json.is_some() {
         // write result json file
         let json_string = serde_json::to_string_pretty(&result_vector).unwrap();
-        write_json(prob_json, json_string)
+        write_json(prob_json.unwrap(), json_string)
     }
 
-    if variant_json.ne("no_file") {
+    if variant_json.is_some() {
         // write variant json file
         let json_string = serde_json::to_string_pretty(&variant_vector).unwrap();
-        write_json(variant_json, json_string)
+        write_json(variant_json.unwrap(), json_string)
     }
 
     best_guess_contam_level
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
+    use assert_approx_eq::assert_approx_eq;
+    use rstest::*;
     use serde_json::Value;
     use std::io::Read;
 
-    #[test]
-    fn test_workflow() {
+    #[rstest]
+    #[case(true, 1000, Some("prob.json"), Some("variants.json"), 0.046)]
+    #[case(true, 1000, None, None, 0.046)]
+    #[case(true, 10, None, None, 0.046)]
+    #[case(true, 10, None, None, 0.046)]
+    #[case(false, 1100, None, None, 0.043)]
+    fn test_workflow(
+        #[case] snv_only_flag: bool,
+        #[case] depth_threshold: usize,
+        #[case] prob_json: Option<&str>,
+        #[case] variant_json: Option<&str>,
+        #[case] expected_out: f64,
+    ) {
         // this is an end to end testing to test everything in
         // the workflow
-        let best_guess_contam_level =
-            workflow("data/test.vcf", true, 1000, "prob.json", "variants.json");
-        assert_eq!(best_guess_contam_level, 0.046);
+        let best_guess_contam_level = workflow(
+            "data/test.vcf",
+            snv_only_flag,
+            depth_threshold,
+            prob_json,
+            variant_json,
+        );
+        assert_approx_eq!(best_guess_contam_level, expected_out);
     }
 
     #[test]

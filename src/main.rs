@@ -90,11 +90,9 @@ fn main() {
     env_logger::init();
     let args = parse_args();
     let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
-    let prob_json: &str = args.value_of::<&str>("debug_json").unwrap_or("no_file");
+    let prob_json: Option<&str> = args.value_of::<&str>("debug_json");
     let out_json: Option<&str> = args.value_of::<&str>("out_json");
-    let variant_json: &str = args
-        .value_of::<&str>("debug_variant_json")
-        .unwrap_or("no_file");
+    let variant_json: Option<&str> = args.value_of::<&str>("debug_variant_json");
     let depth_threshold: usize = args
         .value_of::<&str>("depth_threshold")
         .unwrap_or("0")
