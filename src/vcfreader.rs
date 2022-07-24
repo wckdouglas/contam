@@ -1,17 +1,14 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
 
+use log::info;
 use noodles_vcf as vcf;
 use noodles_vcf::header::format::Key;
 use noodles_vcf::record::filters::Filters;
 use noodles_vcf::record::genotypes::genotype::field::Value::{Integer, IntegerArray};
-use noodles_vcf::record::position::Position;
 use noodles_vcf::record::Record;
-use std::io::BufReader;
-
 use std::fs::File;
+use std::io::BufReader;
 use std::vec::Vec;
-
-use log::info;
 
 /// Colelcting variants from a vcf file
 ///
@@ -60,7 +57,7 @@ pub fn build_variant_list(
                 let alt_genotype = gt[1].position().unwrap();
 
                 let mut zygosity = Zygosity::HETEROZYGOUS;
-                if ref_genotype != alt_genotype {
+                if ref_genotype == alt_genotype {
                     zygosity = Zygosity::HOMOZYGOUS
                 }
                 // assume theres only one sample in the vcf file hence:  get(0)

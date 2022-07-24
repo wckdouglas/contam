@@ -1,17 +1,10 @@
-use std::fs::File;
-use std::io::Write;
-use std::vec::Vec;
-
-extern crate rust_htslib;
-extern crate serde;
-extern crate serde_json;
-extern crate statrs;
-
 use crate::contamination_estimator::calculate_contam_hypothesis;
 use crate::model::{ContamProbResult, VariantPosition};
 use crate::vcfreader::build_variant_list;
-
 use log::info;
+use std::fs::File;
+use std::io::Write;
+use std::vec::Vec;
 
 const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
 

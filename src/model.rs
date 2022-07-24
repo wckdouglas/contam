@@ -65,7 +65,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Total read depth should be >= alt dept")]
     fn test_variant_position_exception() {
-        let vp = VariantPosition::new(
+        let _vp = VariantPosition::new(
             "chrX",
             1,
             100,

@@ -1,7 +1,4 @@
-use clap::{App, Arg, ArgMatches};
-
 extern crate noodles_vcf;
-extern crate rust_htslib;
 extern crate serde;
 extern crate serde_json;
 extern crate statrs;
@@ -11,8 +8,8 @@ mod model;
 mod vcfreader;
 mod workflow;
 
+use clap::{App, Arg, ArgMatches};
 use log::info;
-
 use workflow::{workflow, write_json};
 
 const PROGRAM_DESC: &str = "Estimating contamination level from a diploid VCF file\n\n
