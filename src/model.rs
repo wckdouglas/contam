@@ -43,9 +43,9 @@ impl VariantPosition {
         variant_type: VariantType,
         zygosity: Zygosity,
     ) -> Self {
-        if total_read_depth < alt_depth {
+        if total_read_depth < alt_depth || total_read_depth < 1 {
             // validation of the input
-            panic!("Total read depth should be >= alt depth")
+            panic!("Total read depth should be >= alt depth and positive")
         }
         Self {
             contig: contig.to_string(),
@@ -69,6 +69,20 @@ mod tests {
             "chrX",
             1,
             100,
+            101,
+            VariantType::SNV,
+            Zygosity::HETEROZYGOUS,
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "and positive")]
+    fn test_variant_position_exception_0_depth() {
+        let depth: i32 = 0;
+        let _vp = VariantPosition::new(
+            "chrX",
+            1,
+            depth as usize,
             101,
             VariantType::SNV,
             Zygosity::HETEROZYGOUS,

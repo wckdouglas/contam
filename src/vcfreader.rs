@@ -41,7 +41,7 @@ pub fn build_variant_list(
             let sample_genotype = record.genotypes().get(0).expect("Error out Alelle 1");
             let read_depth = match sample_genotype[&Key::ReadDepth].value().expect("DP tag") {
                 Integer(n) => *n,
-                _ => -1,
+                _ => 0,
             };
 
             if read_depth >= depth_threshold as i32 {
@@ -136,7 +136,16 @@ mod tests {
         VariantType::INDEL
     )]
     #[case(3, Zygosity::HETEROZYGOUS, 441, 978, 38145492, "X", VariantType::SNV)]
-    #[case(13, Zygosity::HOMOZYGOUS, 517, 1131, 38145911, "X", VariantType::SNV)]
+    #[case(12, Zygosity::HOMOZYGOUS, 374, 1100, 38145619, "X", VariantType::INDEL)]
+    #[case(
+        11,
+        Zygosity::HETEROZYGOUS,
+        453,
+        1068,
+        38145582,
+        "X",
+        VariantType::INDEL
+    )]
     fn test_build_variant_list_constructed_variant_position(
         #[case] record_idx: usize,
         #[case] zygosity: Zygosity,
