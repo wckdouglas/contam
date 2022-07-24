@@ -63,4 +63,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-    
+
+      - name: CI -- end-to-end
+        run: |
+          RUST_LOG=info cargo run -- -i data/test.vcf -o out.json -m 1000 -v variants.json --snv-only
