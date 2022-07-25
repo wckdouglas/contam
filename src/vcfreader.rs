@@ -11,6 +11,15 @@ use std::fs::File;
 use std::io::BufReader;
 use std::vec::Vec;
 
+/// Evaluate a vcf record and determine whether it should be collected
+/// for estimating contamination
+///
+/// Arguments
+/// --------
+/// - record: a vcf record from noodles_vcf
+/// - variants: a mutable list containing the accepted variants
+/// - depth_threshold: if the variant has DP tag lower than this, it will be rejected
+/// - snv_only_flag: boolean flag indicating whether we should skip all InDel variants
 fn filter_variants(
     record: &Record,
     variants: &mut Vec<VariantPosition>,
