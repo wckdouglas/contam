@@ -23,10 +23,9 @@ use std::vec::Vec;
 /// - snv_only_flag: boolean flag indicating whether we should skip all InDel variants
 fn filter_variants(
     record: &Record,
-    variants: &mut Vec<VariantPosition>,
     depth_threshold: usize,
     snv_only_flag: bool,
-) {
+) -> Option<VariantPosition> {
     if record.filters().is_none() || record.filters().unwrap().eq(&Filters::Pass) {
         // only look at pass filter variants
 
@@ -70,14 +69,15 @@ fn filter_variants(
             if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
                 // whether we want snv-only or not
                 // make a new VariantPosition here and put into the list
-                variants.push(VariantPosition::new(
+                filtered_out = false;
+                return VariantPosition::new(
                     &record.chromosome().to_string(),
                     usize::try_from(record.position()).unwrap(),
                     read_depth as usize, // only sample in the vcf
                     alt_depth,
                     variant_type,
                     zygosity,
-                ));
+                );
             }
         }
     }
@@ -126,8 +126,10 @@ pub fn build_variant_list(
 
                     if query.is_ok() {
                         // it will not spit error only when there are record in the vcf file within the given locus
-                        for result in query.unwrap() {
-                            let record: Record = result.expect("Cannot read vcf record");
+                        for record in query
+                            .unwrap()
+                            .map(|result| result.expect("Cannot read vcf record"))
+                        {
                             filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
                         }
                     }
@@ -146,8 +148,10 @@ pub fn build_variant_list(
 
             let raw_header = reader.read_header().expect("Error reading header");
             let header = raw_header.parse().unwrap();
-            for result in reader.records(&header) {
-                let record: Record = result.expect("Cannot read vcf record");
+            for record in reader
+                .records(&header)
+                .map(|result| result.expect("Cannot read vcf record"))
+            {
                 filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
             }
         }
@@ -163,8 +167,10 @@ pub fn build_variant_list(
 
             let raw_header = reader.read_header().expect("Error reading header");
             let header = raw_header.parse().unwrap();
-            for result in reader.records(&header) {
-                let record: Record = result.expect("Cannot read vcf record");
+            for record in reader
+                .records(&header)
+                .map(|result| result.expect("Cannot read vcf record"))
+            {
                 filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
             }
         }
