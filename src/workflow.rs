@@ -41,7 +41,7 @@ pub fn workflow(
 ) -> f64 {
     // collect varaints
     let variant_vector: Vec<VariantPosition> =
-        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold);
+        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold, vec![]);
 
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result

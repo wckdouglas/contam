@@ -165,34 +165,36 @@ mod tests {
     use rstest::*;
 
     #[rstest]
-    #[case(false, 0, 14)] // all variants
-    #[case(true, 0, 7)] // all SNV
-    #[case(true, 1000, 6)] // all high depth SNV
-    #[case(true, 1100, 1)] // all high depth SNV
-    #[case(true, 1200, 0)] // all high depth SNV
+    #[case(false, 0, 14, vec![])] // all variants
+    #[case(true, 0, 7, vec![])] // all SNV
+    #[case(true, 1000, 6, vec![])] // all high depth SNV
+    #[case(true, 1100, 1, vec![])] // all high depth SNV
+    #[case(true, 1200, 0, vec![])] // all high depth SNV
     fn test_build_variant_list(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] expected_number_variants: usize,
+        #[case] regions: Vec<&str>,
     ) {
         let vcf_file = "data/test.vcf";
-        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
+        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
         assert_eq!(variant_list.len(), expected_number_variants);
     }
 
     #[rstest]
-    #[case(false, 0, 14)] // all variants
-    #[case(true, 0, 7)] // all SNV
-    #[case(true, 1000, 6)] // all high depth SNV
-    #[case(true, 1100, 1)] // all high depth SNV
-    #[case(true, 1200, 0)] // all high depth SNV
+    #[case(false, 0, 14, vec![])] // all variants
+    #[case(true, 0, 7, vec![])] // all SNV
+    #[case(true, 1000, 6, vec![])] // all high depth SNV
+    #[case(true, 1100, 1, vec![])] // all high depth SNV
+    #[case(true, 1200, 0, vec![])] // all high depth SNV
     fn test_build_variant_list_from_vcf_gz(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] expected_number_variants: usize,
+        #[case] regions: Vec<&str>,
     ) {
         let vcf_file = "data/test.vcf.gz";
-        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
+        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
         assert_eq!(variant_list.len(), expected_number_variants);
     }
 
@@ -236,7 +238,7 @@ mod tests {
         #[case] variant_type: VariantType,
     ) {
         let vcf_file = "data/test.vcf";
-        let variant_list = build_variant_list(&vcf_file, false, 0);
+        let variant_list = build_variant_list(&vcf_file, false, 0, vec![]);
         let record = &variant_list[record_idx];
         assert_eq!(record.zygosity, zygosity);
         assert_eq!(record.alt_depth, alt_depth);
