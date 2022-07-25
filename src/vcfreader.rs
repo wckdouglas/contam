@@ -96,7 +96,7 @@ pub fn build_variant_list(
     vcf_file: &str,
     snv_only_flag: bool,
     depth_threshold: usize,
-    regions: Vec<&str>,
+    regions: Vec<String>,
 ) -> Vec<VariantPosition> {
     let mut variants: Vec<VariantPosition> = Vec::new();
     let is_gz_input = vcf_file.ends_with(".gz");
@@ -177,7 +177,7 @@ mod tests {
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] expected_number_variants: usize,
-        #[case] regions: Vec<&str>,
+        #[case] regions: Vec<String>,
     ) {
         let vcf_file = "data/test.vcf";
         let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
@@ -190,13 +190,13 @@ mod tests {
     #[case(true, 1000, 6, vec![])] // all high depth SNV
     #[case(true, 1100, 1, vec![])] // all high depth SNV
     #[case(true, 1200, 0, vec![])] // all high depth SNV
-    #[case(false, 10, 1, vec!["X:38144665-38144669"])] // test fetch
-    #[case(false, 10, 7, vec!["X:38145491-38145540"])] // test fetch
+    #[case(false, 10, 1, vec![String::from("X:38144665-38144669")])] // test fetch
+    #[case(false, 10, 7, vec![String::from("X:38145491-38145540")])] // test fetch
     fn test_build_variant_list_from_vcf_gz(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] expected_number_variants: usize,
-        #[case] regions: Vec<&str>,
+        #[case] regions: Vec<String>,
     ) {
         let vcf_file = "data/test.vcf.gz";
         let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
