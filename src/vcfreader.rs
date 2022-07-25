@@ -69,18 +69,18 @@ fn filter_variants(
             if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
                 // whether we want snv-only or not
                 // make a new VariantPosition here and put into the list
-                filtered_out = false;
-                return VariantPosition::new(
+                return Some(VariantPosition::new(
                     &record.chromosome().to_string(),
                     usize::try_from(record.position()).unwrap(),
                     read_depth as usize, // only sample in the vcf
                     alt_depth,
                     variant_type,
                     zygosity,
-                );
+                ));
             }
         }
     }
+    return None;
 }
 
 /// Colelcting variants from a vcf file
@@ -98,7 +98,7 @@ pub fn build_variant_list(
     depth_threshold: usize,
     regions: Vec<String>,
 ) -> Vec<VariantPosition> {
-    let mut variants: Vec<VariantPosition> = Vec::new();
+    let mut variants_list: Vec<VariantPosition> = Vec::new();
     let is_gz_input = vcf_file.ends_with(".gz");
     let is_fetch: bool = regions.len() > 0;
     match (is_gz_input, is_fetch) {
@@ -126,12 +126,14 @@ pub fn build_variant_list(
 
                     if query.is_ok() {
                         // it will not spit error only when there are record in the vcf file within the given locus
-                        for record in query
+                        let variants = query
                             .unwrap()
                             .map(|result| result.expect("Cannot read vcf record"))
-                        {
-                            filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
-                        }
+                            .filter_map(|record| {
+                                filter_variants(&record, depth_threshold, snv_only_flag)
+                            })
+                            .collect();
+                        let mut variant_list = [variants, variants_list].concat();
                     }
                 }
             } else {
@@ -148,12 +150,12 @@ pub fn build_variant_list(
 
             let raw_header = reader.read_header().expect("Error reading header");
             let header = raw_header.parse().unwrap();
-            for record in reader
+            let variants = reader
                 .records(&header)
                 .map(|result| result.expect("Cannot read vcf record"))
-            {
-                filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
-            }
+                .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag))
+                .collect();
+            let mut variant_list: Vec<VariantPosition> = [variants, variants_list].concat();
         }
         _ => {
             if is_fetch {
@@ -167,12 +169,12 @@ pub fn build_variant_list(
 
             let raw_header = reader.read_header().expect("Error reading header");
             let header = raw_header.parse().unwrap();
-            for record in reader
+            let variants = reader
                 .records(&header)
                 .map(|result| result.expect("Cannot read vcf record"))
-            {
-                filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
-            }
+                .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag))
+                .collect();
+            let mut variant_list: Vec<VariantPosition> = [variants, variants_list].concat();
         }
     };
 
