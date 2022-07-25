@@ -1,3 +1,4 @@
+use crate::bed::read_bed;
 use crate::contamination_estimator::calculate_contam_hypothesis;
 use crate::model::{ContamProbResult, VariantPosition};
 use crate::vcfreader::build_variant_list;

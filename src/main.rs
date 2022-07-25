@@ -5,6 +5,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate statrs;
 
+mod bed;
 mod contamination_estimator;
 mod model;
 mod vcfreader;
