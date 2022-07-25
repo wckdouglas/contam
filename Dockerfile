@@ -5,4 +5,4 @@ WORKDIR /opt/diploid-contam
 RUN cargo install --path .
 
 FROM builder as final
-CMD ["diploid-contam-estimator"]
+CMD ["/usr/local/cargo/bin/diploid-contam-estimator"]
