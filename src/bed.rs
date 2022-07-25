@@ -42,8 +42,9 @@ mod tests {
     fn test_build_variant_list() {
         let bed_file = "data/test.bed";
         let region_list = read_bed(Some(bed_file));
-        assert_eq!(region_list.len(), 3);
+        assert_eq!(region_list.len(), 4);
         assert_eq!(region_list[0], "X:2-5");
         assert_eq!(region_list[1], "X:3-7");
+        assert_eq!(region_list[3], "1:3-7");
     }
 }
