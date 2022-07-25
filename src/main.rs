@@ -50,7 +50,11 @@ fn main() {
     );
 
     if out_json.is_some() {
-        let json_string = format!("{{\n  \"{}\": {}\n}}\n", vcf_file, best_guess_contam_level);
+        let json_string = format!(
+            "{{\n  \"vcf_file\":\"{}\",\n\"contamination_level\": {}\n}}\n",
+            vcf_file,
+            best_guess_contam_level * 100.0
+        );
         write_json(out_json.unwrap(), json_string);
         info!("Written result json at: {}", out_json.unwrap());
     }

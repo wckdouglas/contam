@@ -9,7 +9,7 @@ use std::option::Option;
 use std::string::String;
 use std::vec::Vec;
 
-const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
+const MAX_CONTAM: usize = 400; // should be 0.399 because we divide 1000
 
 /// write string to file
 ///
