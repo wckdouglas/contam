@@ -1,5 +1,6 @@
 extern crate noodles_bed;
 
+use log::info;
 use std::fs::File;
 use std::io::BufReader;
 use std::option::Option;
@@ -24,6 +25,11 @@ pub fn read_bed(bed_file: Option<&str>) -> Vec<String> {
             let region_string: String = format!("{}:{}-{}", contig, start, stop);
             region_list.push(region_string);
         }
+        info!(
+            "Collected {} loci from {}",
+            region_list.len(),
+            bed_file.unwrap()
+        );
     }
     return region_list;
 }

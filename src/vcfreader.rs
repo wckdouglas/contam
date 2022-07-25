@@ -27,7 +27,7 @@ fn filter_variants(
     depth_threshold: usize,
     snv_only_flag: bool,
 ) {
-    if record.filters().unwrap().eq(&Filters::Pass) {
+    if record.filters().is_none() || record.filters().unwrap().eq(&Filters::Pass) {
         // only look at pass filter variants
 
         let sample_genotype = record.genotypes().get(0).expect("Error out Alelle 1");
@@ -117,16 +117,23 @@ pub fn build_variant_list(
                 let raw_header = reader.read_header().expect("Error reading header");
                 let header = raw_header.parse().unwrap();
                 for region in regions.iter() {
-                    let query = reader
-                        .query(&header, &index, &region.parse().unwrap())
-                        .unwrap();
-                    for result in query {
-                        let record: Record = result.expect("Cannot read vcf record");
-                        filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+                    info!("Fetching {}", region);
+                    let query = reader.query(
+                        &header,
+                        &index,
+                        &region.parse().expect("Error parsing locus string"),
+                    );
+
+                    if query.is_ok() {
+                        // it will not spit error only when there are record in the vcf file within the given locus
+                        for result in query.unwrap() {
+                            let record: Record = result.expect("Cannot read vcf record");
+                            filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+                        }
                     }
                 }
             } else {
-                panic!("Tabix file {} does not exist", vcf_file_idx_fn);
+                panic!("Missing tabix file {}", vcf_file_idx_fn);
             }
         }
         (true, false) => {
