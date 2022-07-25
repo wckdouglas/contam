@@ -2,12 +2,13 @@ use crate::model::{VariantPosition, VariantType, Zygosity};
 
 use log::info;
 use noodles_bgzf as bgzf;
+use noodles_tabix as tabix;
 use noodles_vcf as vcf;
 use noodles_vcf::header::format::Key;
 use noodles_vcf::record::filters::Filters;
 use noodles_vcf::record::genotypes::genotype::field::Value::{Integer, IntegerArray};
 use noodles_vcf::record::Record;
-use std::fs::File;
+use std::fs::{metadata, File};
 use std::io::BufReader;
 use std::vec::Vec;
 
@@ -95,11 +96,36 @@ pub fn build_variant_list(
     vcf_file: &str,
     snv_only_flag: bool,
     depth_threshold: usize,
+    regions: Vec<&str>,
 ) -> Vec<VariantPosition> {
     let mut variants: Vec<VariantPosition> = Vec::new();
     let is_gz_input = vcf_file.ends_with(".gz");
-    match is_gz_input {
-        true => {
+    let is_fetch: bool = regions.len() > 0;
+    match (is_gz_input, is_fetch) {
+        (true, true) => {
+            let vcf_file_idx_fn = format!("{}.tbi", vcf_file);
+            if metadata(&vcf_file_idx_fn).is_ok() {
+                let index = tabix::read(vcf_file_idx_fn).expect("Error reading tabix file");
+
+                let mut reader = File::open(vcf_file)
+                    .map(bgzf::Reader::new)
+                    .map(vcf::Reader::new)
+                    .unwrap();
+
+                let raw_header = reader.read_header().expect("Error reading header");
+                let header = raw_header.parse().unwrap();
+                let region = "X:38144665-38144668".parse().unwrap();
+                let query = reader.query(&header, &index, &region).unwrap();
+                for result in query {
+                    let record: Record = result.expect("Cannot read vcf record");
+                    filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+                }
+            } else {
+                panic!("Tabix file {} does not exist", vcf_file_idx_fn);
+            }
+        }
+        (true, false) => {
+            // in the case of gzip-ed vcf input, we will read all variants
             let mut reader = File::open(vcf_file)
                 .map(bgzf::Reader::new)
                 .map(BufReader::new)
@@ -114,6 +140,7 @@ pub fn build_variant_list(
             }
         }
         _ => {
+            // in the case of non gz vcf input, we will read all variants
             let mut reader = File::open(vcf_file)
                 .map(BufReader::new)
                 .map(vcf::Reader::new)

@@ -106,6 +106,7 @@ dependencies = [
  "env_logger",
  "log",
  "noodles-bgzf",
+ "noodles-tabix",
  "noodles-vcf",
  "rstest",
  "serde",
