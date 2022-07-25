@@ -105,6 +105,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "noodles-bgzf",
  "noodles-vcf",
  "rstest",
  "serde",
