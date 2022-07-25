@@ -1,6 +1,6 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
 
-use log::info;
+use log::{info, warn};
 use noodles_bgzf as bgzf;
 use noodles_tabix as tabix;
 use noodles_vcf as vcf;
@@ -105,7 +105,9 @@ pub fn build_variant_list(
         (true, true) => {
             let vcf_file_idx_fn = format!("{}.tbi", vcf_file);
             if metadata(&vcf_file_idx_fn).is_ok() {
-                let index = tabix::read(vcf_file_idx_fn).expect("Error reading tabix file");
+                let index = tabix::read(vcf_file_idx_fn).expect(
+                    "Error reading tabix file, tabix file is needed if a bed file is supplied",
+                );
 
                 let mut reader = File::open(vcf_file)
                     .map(bgzf::Reader::new)
@@ -143,6 +145,9 @@ pub fn build_variant_list(
             }
         }
         _ => {
+            if is_fetch {
+                warn!("Because the input vcf is not indexed, will use all the variants!!");
+            }
             // in the case of non gz vcf input, we will read all variants
             let mut reader = File::open(vcf_file)
                 .map(BufReader::new)

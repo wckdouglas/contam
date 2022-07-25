@@ -86,4 +86,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -- -i data/test.vcf -o out.json -m 1000 -b data/test.bed
+          args: -- -i data/test.vcf.gz -o out.json -m 1000 -b data/test.bed
