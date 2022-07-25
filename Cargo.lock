@@ -105,6 +105,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "noodles-bed",
  "noodles-bgzf",
  "noodles-tabix",
  "noodles-vcf",
@@ -324,6 +325,15 @@ checksum = "a8903e5a29a317527874d0402f867152a3d21c908bb0b933e416c65e301d4c36"
 dependencies = [
  "memchr",
  "minimal-lexical",
+]
+
+[[package]]
+name = "noodles-bed"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e02b60c4cec12cbb1566e81126470e336650650b9b3f1feab995fa0834ba9c1"
+dependencies = [
+ "noodles-core",
 ]
 
 [[package]]
