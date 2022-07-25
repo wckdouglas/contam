@@ -6,6 +6,7 @@ use log::info;
 use std::fs::File;
 use std::io::Write;
 use std::option::Option;
+use std::string::String;
 use std::vec::Vec;
 
 const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
@@ -35,14 +36,16 @@ pub fn write_json(filename: &str, json_string: String) {
 ///              used for the contam level compuatation ("_no_file" will turn off writing a file)
 pub fn workflow(
     vcf_file: &str,
+    loci_bed: Option<&str>,
     snv_only_flag: bool,
     depth_threshold: usize,
     prob_json: Option<&str>,
     variant_json: Option<&str>,
 ) -> f64 {
     // collect varaints
+    let regions: Vec<String> = read_bed(loci_bed);
     let variant_vector: Vec<VariantPosition> =
-        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold, vec![]);
+        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold, regions);
 
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result
@@ -110,6 +113,7 @@ mod tests {
         // the workflow
         let best_guess_contam_level: f64 = workflow(
             "data/test.vcf",
+            None,
             snv_only_flag,
             depth_threshold,
             prob_json,

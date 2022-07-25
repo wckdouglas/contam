@@ -84,6 +84,14 @@ fn parse_args() -> ArgMatches {
                 .default_value("0")
                 .help("Minimum depth for a variant to be considered (i.e. DP tag)"),
         )
+        .arg(
+            Arg::with_name("region_bed")
+                .short('b')
+                .long("bed")
+                .takes_value(true)
+                .required(false)
+                .help("bed file containing loci for extracting variants"),
+        )
         .get_matches();
     matches
 }
@@ -96,6 +104,7 @@ fn main() {
     let prob_json: Option<&str> = args.value_of::<&str>("debug_json");
     let out_json: Option<&str> = args.value_of::<&str>("out_json");
     let variant_json: Option<&str> = args.value_of::<&str>("debug_variant_json");
+    let loci_bed: Option<&str> = args.value_of::<&str>("region_bed");
     let depth_threshold: usize = args
         .value_of::<&str>("depth_threshold")
         .unwrap_or("0")
@@ -106,6 +115,7 @@ fn main() {
 
     let best_guess_contam_level: f64 = workflow(
         vcf_file,
+        loci_bed,
         snv_only_flag,
         depth_threshold,
         prob_json,
