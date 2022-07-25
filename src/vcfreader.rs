@@ -1,6 +1,7 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
 
 use log::info;
+use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 use noodles_vcf::header::format::Key;
 use noodles_vcf::record::filters::Filters;
@@ -9,6 +10,68 @@ use noodles_vcf::record::Record;
 use std::fs::File;
 use std::io::BufReader;
 use std::vec::Vec;
+
+fn filter_variants(
+    record: &Record,
+    variants: &mut Vec<VariantPosition>,
+    depth_threshold: usize,
+    snv_only_flag: bool,
+) {
+    if record.filters().unwrap().eq(&Filters::Pass) {
+        // only look at pass filter variants
+
+        let sample_genotype = record.genotypes().get(0).expect("Error out Alelle 1");
+        let read_depth = match sample_genotype[&Key::ReadDepth].value().expect("DP tag") {
+            Integer(n) => *n,
+            _ => 0,
+        };
+
+        if read_depth >= depth_threshold as i32 {
+            let bad_vec = &vec![None];
+            let allele_depths = match sample_genotype[&Key::ReadDepths].value().expect("AD tag") {
+                IntegerArray(n) => n,
+                _ => bad_vec,
+            };
+            // Genotyping sample
+            let gt = sample_genotype.genotype().unwrap().unwrap();
+            let ref_genotype = gt[0].position().unwrap();
+            let alt_genotype = gt[1].position().unwrap();
+
+            let mut zygosity = Zygosity::HOMOZYGOUS;
+            if ref_genotype != alt_genotype {
+                zygosity = Zygosity::HETEROZYGOUS
+            }
+            // assume theres only one sample in the vcf file hence:  get(0)
+            // and diploid call (2nd genotype is non-ref), hence: [1].index
+            let ref_base = record.reference_bases();
+            let alt_base = &record.alternate_bases()[alt_genotype - 1];
+            let alt_depth = allele_depths[alt_genotype]
+                .expect("Alt allele depth is unavaliable (AD tag)")
+                as usize;
+
+            let mut variant_type: VariantType = VariantType::INDEL;
+            if ref_base.to_string().len() == alt_base.to_string().len() {
+                // this should be testing the len of Vec<u8> where
+                // each item represents a base
+                // only if they are the same length, it's a SNV
+                variant_type = VariantType::SNV;
+            }
+
+            if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
+                // whether we want snv-only or not
+                // make a new VariantPosition here and put into the list
+                variants.push(VariantPosition::new(
+                    &record.chromosome().to_string(),
+                    usize::try_from(record.position()).unwrap(),
+                    read_depth as usize, // only sample in the vcf
+                    alt_depth,
+                    variant_type,
+                    zygosity,
+                ));
+            }
+        }
+    }
+}
 
 /// Colelcting variants from a vcf file
 ///
@@ -24,73 +87,38 @@ pub fn build_variant_list(
     snv_only_flag: bool,
     depth_threshold: usize,
 ) -> Vec<VariantPosition> {
-    let mut reader = File::open(vcf_file)
-        .map(BufReader::new)
-        .map(vcf::Reader::new)
-        .unwrap();
-    let raw_header = reader.read_header().expect("Error reading header");
-    let header = raw_header.parse().unwrap();
-
     let mut variants: Vec<VariantPosition> = Vec::new();
-    for result in reader.records(&header) {
-        let record: Record = result.expect("Cannot read vcf record");
+    let is_gz_input = vcf_file.ends_with(".gz");
+    match is_gz_input {
+        true => {
+            let mut reader = File::open(vcf_file)
+                .map(bgzf::Reader::new)
+                .map(BufReader::new)
+                .map(vcf::Reader::new)
+                .unwrap();
 
-        if record.filters().unwrap().eq(&Filters::Pass) {
-            // only look at pass filter variants
-
-            let sample_genotype = record.genotypes().get(0).expect("Error out Alelle 1");
-            let read_depth = match sample_genotype[&Key::ReadDepth].value().expect("DP tag") {
-                Integer(n) => *n,
-                _ => 0,
-            };
-
-            if read_depth >= depth_threshold as i32 {
-                let bad_vec = &vec![None];
-                let allele_depths = match sample_genotype[&Key::ReadDepths].value().expect("AD tag")
-                {
-                    IntegerArray(n) => n,
-                    _ => bad_vec,
-                };
-                // Genotyping sample
-                let gt = sample_genotype.genotype().unwrap().unwrap();
-                let ref_genotype = gt[0].position().unwrap();
-                let alt_genotype = gt[1].position().unwrap();
-
-                let mut zygosity = Zygosity::HOMOZYGOUS;
-                if ref_genotype != alt_genotype {
-                    zygosity = Zygosity::HETEROZYGOUS
-                }
-                // assume theres only one sample in the vcf file hence:  get(0)
-                // and diploid call (2nd genotype is non-ref), hence: [1].index
-                let ref_base = record.reference_bases();
-                let alt_base = &record.alternate_bases()[alt_genotype - 1];
-                let alt_depth = allele_depths[alt_genotype]
-                    .expect("Alt allele depth is unavaliable (AD tag)")
-                    as usize;
-
-                let mut variant_type: VariantType = VariantType::INDEL;
-                if ref_base.to_string().len() == alt_base.to_string().len() {
-                    // this should be testing the len of Vec<u8> where
-                    // each item represents a base
-                    // only if they are the same length, it's a SNV
-                    variant_type = VariantType::SNV;
-                }
-
-                if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
-                    // whether we want snv-only or not
-                    // make a new VariantPosition here and put into the list
-                    variants.push(VariantPosition::new(
-                        &record.chromosome().to_string(),
-                        usize::try_from(record.position()).unwrap(),
-                        read_depth as usize, // only sample in the vcf
-                        alt_depth,
-                        variant_type,
-                        zygosity,
-                    ));
-                }
+            let raw_header = reader.read_header().expect("Error reading header");
+            let header = raw_header.parse().unwrap();
+            for result in reader.records(&header) {
+                let record: Record = result.expect("Cannot read vcf record");
+                filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
             }
         }
-    }
+        _ => {
+            let mut reader = File::open(vcf_file)
+                .map(BufReader::new)
+                .map(vcf::Reader::new)
+                .unwrap();
+
+            let raw_header = reader.read_header().expect("Error reading header");
+            let header = raw_header.parse().unwrap();
+            for result in reader.records(&header) {
+                let record: Record = result.expect("Cannot read vcf record");
+                filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+            }
+        }
+    };
+
     info!("Collected {} variants from {}", variants.len(), vcf_file);
     return variants;
 }
@@ -112,6 +140,22 @@ mod tests {
         #[case] expected_number_variants: usize,
     ) {
         let vcf_file = "data/test.vcf";
+        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
+        assert_eq!(variant_list.len(), expected_number_variants);
+    }
+
+    #[rstest]
+    #[case(false, 0, 14)] // all variants
+    #[case(true, 0, 7)] // all SNV
+    #[case(true, 1000, 6)] // all high depth SNV
+    #[case(true, 1100, 1)] // all high depth SNV
+    #[case(true, 1200, 0)] // all high depth SNV
+    fn test_build_variant_list_from_vcf_gz(
+        #[case] snv_only_flag: bool,
+        #[case] depth_threshold: usize,
+        #[case] expected_number_variants: usize,
+    ) {
+        let vcf_file = "data/test.vcf.gz";
         let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
         assert_eq!(variant_list.len(), expected_number_variants);
     }
