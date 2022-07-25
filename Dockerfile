@@ -5,4 +5,5 @@ WORKDIR /opt/diploid-contam
 RUN cargo install --path .
 
 FROM builder as final
-CMD ["/usr/local/cargo/bin/diploid-contam-estimator"]
+ENV RUST_LOG=info
+ENTRYPOINT ["/usr/local/cargo/bin/diploid-contam-estimator"]
