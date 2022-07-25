@@ -14,6 +14,7 @@ mod workflow;
 
 use cli::parse_args;
 use log::info;
+use serde_json::json;
 use std::option::Option;
 use workflow::{workflow, write_json};
 
@@ -50,12 +51,16 @@ fn main() {
     );
 
     if out_json.is_some() {
-        let json_string = format!(
-            "{{\n  \"vcf_file\":\"{}\",\n\"contamination_level\": {}\n}}\n",
-            vcf_file,
-            best_guess_contam_level * 100.0
+        let json_data = json!(
+            {
+                "vcf_file": vcf_file,
+                "contamination_level": best_guess_contam_level * 100.0,
+            }
         );
-        write_json(out_json.unwrap(), json_string);
+        write_json(
+            out_json.unwrap(),
+            serde_json::to_string_pretty(&json_data).unwrap(),
+        );
         info!("Written result json at: {}", out_json.unwrap());
     }
 }
