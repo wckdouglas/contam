@@ -1,13 +1,14 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
 
-use log::info;
+use log::{info, warn};
 use noodles_bgzf as bgzf;
+use noodles_tabix as tabix;
 use noodles_vcf as vcf;
 use noodles_vcf::header::format::Key;
 use noodles_vcf::record::filters::Filters;
 use noodles_vcf::record::genotypes::genotype::field::Value::{Integer, IntegerArray};
 use noodles_vcf::record::Record;
-use std::fs::File;
+use std::fs::{metadata, File};
 use std::io::BufReader;
 use std::vec::Vec;
 
@@ -95,11 +96,41 @@ pub fn build_variant_list(
     vcf_file: &str,
     snv_only_flag: bool,
     depth_threshold: usize,
+    regions: Vec<String>,
 ) -> Vec<VariantPosition> {
     let mut variants: Vec<VariantPosition> = Vec::new();
     let is_gz_input = vcf_file.ends_with(".gz");
-    match is_gz_input {
-        true => {
+    let is_fetch: bool = regions.len() > 0;
+    match (is_gz_input, is_fetch) {
+        (true, true) => {
+            let vcf_file_idx_fn = format!("{}.tbi", vcf_file);
+            if metadata(&vcf_file_idx_fn).is_ok() {
+                let index = tabix::read(vcf_file_idx_fn).expect(
+                    "Error reading tabix file, tabix file is needed if a bed file is supplied",
+                );
+
+                let mut reader = File::open(vcf_file)
+                    .map(bgzf::Reader::new)
+                    .map(vcf::Reader::new)
+                    .unwrap();
+
+                let raw_header = reader.read_header().expect("Error reading header");
+                let header = raw_header.parse().unwrap();
+                for region in regions.iter() {
+                    let query = reader
+                        .query(&header, &index, &region.parse().unwrap())
+                        .unwrap();
+                    for result in query {
+                        let record: Record = result.expect("Cannot read vcf record");
+                        filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+                    }
+                }
+            } else {
+                panic!("Tabix file {} does not exist", vcf_file_idx_fn);
+            }
+        }
+        (true, false) => {
+            // in the case of gzip-ed vcf input, we will read all variants
             let mut reader = File::open(vcf_file)
                 .map(bgzf::Reader::new)
                 .map(BufReader::new)
@@ -114,6 +145,10 @@ pub fn build_variant_list(
             }
         }
         _ => {
+            if is_fetch {
+                warn!("Because the input vcf is not indexed, will use all the variants!!");
+            }
+            // in the case of non gz vcf input, we will read all variants
             let mut reader = File::open(vcf_file)
                 .map(BufReader::new)
                 .map(vcf::Reader::new)
@@ -138,34 +173,39 @@ mod tests {
     use rstest::*;
 
     #[rstest]
-    #[case(false, 0, 14)] // all variants
-    #[case(true, 0, 7)] // all SNV
-    #[case(true, 1000, 6)] // all high depth SNV
-    #[case(true, 1100, 1)] // all high depth SNV
-    #[case(true, 1200, 0)] // all high depth SNV
+    #[case(false, 0, 14, vec![])] // all variants
+    #[case(true, 0, 7, vec![])] // all SNV
+    #[case(true, 1000, 6, vec![])] // all high depth SNV
+    #[case(true, 1100, 1, vec![])] // all high depth SNV
+    #[case(true, 1200, 0, vec![])] // all high depth SNV
     fn test_build_variant_list(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] expected_number_variants: usize,
+        #[case] regions: Vec<String>,
     ) {
         let vcf_file = "data/test.vcf";
-        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
+        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
         assert_eq!(variant_list.len(), expected_number_variants);
     }
 
     #[rstest]
-    #[case(false, 0, 14)] // all variants
-    #[case(true, 0, 7)] // all SNV
-    #[case(true, 1000, 6)] // all high depth SNV
-    #[case(true, 1100, 1)] // all high depth SNV
-    #[case(true, 1200, 0)] // all high depth SNV
+    #[case(false, 0, 14, vec![])] // all variants
+    #[case(true, 0, 7, vec![])] // all SNV
+    #[case(true, 1000, 6, vec![])] // all high depth SNV
+    #[case(true, 1100, 1, vec![])] // all high depth SNV
+    #[case(true, 1200, 0, vec![])] // all high depth SNV
+    #[case(false, 10, 1, vec![String::from("X:38144665-38144669")])] // test fetch
+    #[case(false, 10, 7, vec![String::from("X:38145491-38145540")])] // test fetch
+    #[case(false, 10, 8, vec![String::from("X:38144665-38144669"), String::from("X:38145491-38145540")])] // test fetch
     fn test_build_variant_list_from_vcf_gz(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] expected_number_variants: usize,
+        #[case] regions: Vec<String>,
     ) {
         let vcf_file = "data/test.vcf.gz";
-        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold);
+        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
         assert_eq!(variant_list.len(), expected_number_variants);
     }
 
@@ -209,7 +249,7 @@ mod tests {
         #[case] variant_type: VariantType,
     ) {
         let vcf_file = "data/test.vcf";
-        let variant_list = build_variant_list(&vcf_file, false, 0);
+        let variant_list = build_variant_list(&vcf_file, false, 0, vec![]);
         let record = &variant_list[record_idx];
         assert_eq!(record.zygosity, zygosity);
         assert_eq!(record.alt_depth, alt_depth);

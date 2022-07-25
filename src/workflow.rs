@@ -1,3 +1,4 @@
+use crate::bed::read_bed;
 use crate::contamination_estimator::calculate_contam_hypothesis;
 use crate::model::{ContamProbResult, VariantPosition};
 use crate::vcfreader::build_variant_list;
@@ -5,6 +6,7 @@ use log::info;
 use std::fs::File;
 use std::io::Write;
 use std::option::Option;
+use std::string::String;
 use std::vec::Vec;
 
 const MAX_CONTAM: usize = 300; // should be 0.399 because we divide 1000
@@ -34,14 +36,16 @@ pub fn write_json(filename: &str, json_string: String) {
 ///              used for the contam level compuatation ("_no_file" will turn off writing a file)
 pub fn workflow(
     vcf_file: &str,
+    loci_bed: Option<&str>,
     snv_only_flag: bool,
     depth_threshold: usize,
     prob_json: Option<&str>,
     variant_json: Option<&str>,
 ) -> f64 {
     // collect varaints
+    let regions: Vec<String> = read_bed(loci_bed);
     let variant_vector: Vec<VariantPosition> =
-        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold);
+        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold, regions);
 
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result
@@ -93,22 +97,40 @@ mod tests {
     use std::io::Read;
 
     #[rstest]
-    #[case(true, 1000, Some("prob.json"), Some("variants.json"), 0.046)]
-    #[case(true, 1000, None, None, 0.046)]
-    #[case(true, 10, None, None, 0.046)]
-    #[case(true, 10, None, None, 0.046)]
-    #[case(false, 1100, None, None, 0.043)]
+    #[case(
+        false,
+        true,
+        1000,
+        Some("prob.json"),
+        Some("variants.json"),
+        0.046,
+        None
+    )]
+    #[case(false, true, 1000, None, None, 0.046, None)]
+    #[case(false, true, 10, None, None, 0.046, None)]
+    #[case(false, true, 10, None, None, 0.046, None)]
+    #[case(false, false, 1100, None, None, 0.043, None)]
+    #[case(true, true, 200, None, None, 0.001, Some("data/test.bed"))] // fetch region from bed
+    #[case(true, true, 200, None, None, 0.046, None)] // fetch region from bed
+    #[case(false, true, 200, None, None, 0.046, Some("data/test.bed"))] // non-gz input but given a bed, will skip the query part and use all variants
     fn test_workflow(
+        #[case] gz_input: bool,
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] prob_json: Option<&str>,
         #[case] variant_json: Option<&str>,
         #[case] expected_out: f64,
+        #[case] bed_file: Option<&str>,
     ) {
         // this is an end to end testing to test everything in
         // the workflow
+        let vcf_file = match gz_input {
+            false => "data/test.vcf",
+            true => "data/test.vcf.gz",
+        };
         let best_guess_contam_level: f64 = workflow(
-            "data/test.vcf",
+            vcf_file,
+            bed_file,
             snv_only_flag,
             depth_threshold,
             prob_json,
