@@ -192,6 +192,7 @@ mod tests {
     #[case(true, 1200, 0, vec![])] // all high depth SNV
     #[case(false, 10, 1, vec![String::from("X:38144665-38144669")])] // test fetch
     #[case(false, 10, 7, vec![String::from("X:38145491-38145540")])] // test fetch
+    #[case(false, 10, 8, vec![String::from("X:38144665-38144669"), String::from("X:38145491-38145540")])] // test fetch
     fn test_build_variant_list_from_vcf_gz(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,

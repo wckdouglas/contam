@@ -97,23 +97,40 @@ mod tests {
     use std::io::Read;
 
     #[rstest]
-    #[case(true, 1000, Some("prob.json"), Some("variants.json"), 0.046)]
-    #[case(true, 1000, None, None, 0.046)]
-    #[case(true, 10, None, None, 0.046)]
-    #[case(true, 10, None, None, 0.046)]
-    #[case(false, 1100, None, None, 0.043)]
+    #[case(
+        false,
+        true,
+        1000,
+        Some("prob.json"),
+        Some("variants.json"),
+        0.046,
+        None
+    )]
+    #[case(false, true, 1000, None, None, 0.046, None)]
+    #[case(false, true, 10, None, None, 0.046, None)]
+    #[case(false, true, 10, None, None, 0.046, None)]
+    #[case(false, false, 1100, None, None, 0.043, None)]
+    #[case(true, true, 200, None, None, 0.001, Some("data/test.bed"))] // fetch region from bed
+    #[case(true, true, 200, None, None, 0.046, None)] // fetch region from bed
+    #[case(false, true, 200, None, None, 0.046, Some("data/test.bed"))] // non-gz input but given a bed, will skip the query part and use all variants
     fn test_workflow(
+        #[case] gz_input: bool,
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
         #[case] prob_json: Option<&str>,
         #[case] variant_json: Option<&str>,
         #[case] expected_out: f64,
+        #[case] bed_file: Option<&str>,
     ) {
         // this is an end to end testing to test everything in
         // the workflow
+        let vcf_file = match gz_input {
+            false => "data/test.vcf",
+            true => "data/test.vcf.gz",
+        };
         let best_guess_contam_level: f64 = workflow(
-            "data/test.vcf",
-            None,
+            vcf_file,
+            bed_file,
             snv_only_flag,
             depth_threshold,
             prob_json,
