@@ -114,11 +114,14 @@ pub fn build_variant_list(
 
                 let raw_header = reader.read_header().expect("Error reading header");
                 let header = raw_header.parse().unwrap();
-                let region = "X:38144665-38144668".parse().unwrap();
-                let query = reader.query(&header, &index, &region).unwrap();
-                for result in query {
-                    let record: Record = result.expect("Cannot read vcf record");
-                    filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+                for region in regions.iter() {
+                    let query = reader
+                        .query(&header, &index, &region.parse().unwrap())
+                        .unwrap();
+                    for result in query {
+                        let record: Record = result.expect("Cannot read vcf record");
+                        filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+                    }
                 }
             } else {
                 panic!("Tabix file {} does not exist", vcf_file_idx_fn);
@@ -187,6 +190,7 @@ mod tests {
     #[case(true, 1000, 6, vec![])] // all high depth SNV
     #[case(true, 1100, 1, vec![])] // all high depth SNV
     #[case(true, 1200, 0, vec![])] // all high depth SNV
+    #[case(false, 10, 1, vec!["X:38144665-38144669"])] // all high depth SNV
     fn test_build_variant_list_from_vcf_gz(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
