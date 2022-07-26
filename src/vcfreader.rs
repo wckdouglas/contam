@@ -1,6 +1,6 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
 
-use log::{info, warn};
+use log::info;
 use noodles_bgzf as bgzf;
 use noodles_tabix as tabix;
 use noodles_vcf as vcf;
@@ -23,10 +23,9 @@ use std::vec::Vec;
 /// - snv_only_flag: boolean flag indicating whether we should skip all InDel variants
 fn filter_variants(
     record: &Record,
-    variants: &mut Vec<VariantPosition>,
     depth_threshold: usize,
     snv_only_flag: bool,
-) {
+) -> Option<VariantPosition> {
     if record.filters().is_none() || record.filters().unwrap().eq(&Filters::Pass) {
         // only look at pass filter variants
 
@@ -70,7 +69,7 @@ fn filter_variants(
             if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
                 // whether we want snv-only or not
                 // make a new VariantPosition here and put into the list
-                variants.push(VariantPosition::new(
+                return Some(VariantPosition::new(
                     &record.chromosome().to_string(),
                     usize::try_from(record.position()).unwrap(),
                     read_depth as usize, // only sample in the vcf
@@ -81,6 +80,7 @@ fn filter_variants(
             }
         }
     }
+    return None;
 }
 
 /// Colelcting variants from a vcf file
@@ -98,7 +98,7 @@ pub fn build_variant_list(
     depth_threshold: usize,
     regions: Vec<String>,
 ) -> Vec<VariantPosition> {
-    let mut variants: Vec<VariantPosition> = Vec::new();
+    let mut variant_list: Vec<VariantPosition> = Vec::new();
     let is_gz_input = vcf_file.ends_with(".gz");
     let is_fetch: bool = regions.len() > 0;
     match (is_gz_input, is_fetch) {
@@ -116,20 +116,24 @@ pub fn build_variant_list(
 
                 let raw_header = reader.read_header().expect("Error reading header");
                 let header = raw_header.parse().unwrap();
+                let mut variant_count: usize = 0;
                 for region in regions.iter() {
-                    info!("Fetching {}", region);
-                    let query = reader.query(
-                        &header,
-                        &index,
-                        &region.parse().expect("Error parsing locus string"),
-                    );
-
+                    let query = reader.query(&header, &index, &region.parse().unwrap());
                     if query.is_ok() {
-                        // it will not spit error only when there are record in the vcf file within the given locus
-                        for result in query.unwrap() {
-                            let record: Record = result.expect("Cannot read vcf record");
-                            filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
+                        for record in query.unwrap() {
+                            let variant = filter_variants(
+                                &record.expect("Cannot read vcf record"),
+                                depth_threshold,
+                                snv_only_flag,
+                            );
+                            if variant.is_some() {
+                                variant_list.push(variant.unwrap());
+                            }
+                            variant_count += 1;
                         }
+                        info!("Fetched {} variants from {}", variant_count, region);
+                    } else {
+                        info!("Skipping {} with no vcf records", region);
                     }
                 }
             } else {
@@ -146,14 +150,17 @@ pub fn build_variant_list(
 
             let raw_header = reader.read_header().expect("Error reading header");
             let header = raw_header.parse().unwrap();
-            for result in reader.records(&header) {
-                let record: Record = result.expect("Cannot read vcf record");
-                filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
-            }
+            let mut variants = Vec::from_iter(
+                reader
+                    .records(&header)
+                    .map(|result| result.expect("Cannot read vcf record"))
+                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag)),
+            );
+            variant_list.append(&mut variants);
         }
         _ => {
             if is_fetch {
-                warn!("Because the input vcf is not indexed, will use all the variants!!");
+                panic!("Fetching bed loci from non bgzipped vcf file is not supported");
             }
             // in the case of non gz vcf input, we will read all variants
             let mut reader = File::open(vcf_file)
@@ -163,15 +170,22 @@ pub fn build_variant_list(
 
             let raw_header = reader.read_header().expect("Error reading header");
             let header = raw_header.parse().unwrap();
-            for result in reader.records(&header) {
-                let record: Record = result.expect("Cannot read vcf record");
-                filter_variants(&record, &mut variants, depth_threshold, snv_only_flag);
-            }
+            let mut variants = Vec::from_iter(
+                reader
+                    .records(&header)
+                    .map(|result| result.expect("Cannot read vcf record"))
+                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag)),
+            );
+            variant_list.append(&mut variants);
         }
     };
 
-    info!("Collected {} variants from {}", variants.len(), vcf_file);
-    return variants;
+    info!(
+        "Collected {} variants from {}",
+        variant_list.len(),
+        vcf_file
+    );
+    return variant_list;
 }
 
 #[cfg(test)]
@@ -205,7 +219,6 @@ mod tests {
     #[case(false, 10, 1, vec![String::from("X:38144665-38144669")])] // test fetch
     #[case(false, 10, 7, vec![String::from("X:38145491-38145540")])] // test fetch
     #[case(false, 10, 8, vec![String::from("X:38144665-38144669"), String::from("X:38145491-38145540")])] // test fetch
-    #[case(false, 10, 0, vec![String::from("1:38145491-38145540")])] // test fetch somewhere else, no error out
     fn test_build_variant_list_from_vcf_gz(
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
@@ -215,6 +228,17 @@ mod tests {
         let vcf_file = "data/test.vcf.gz";
         let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
         assert_eq!(variant_list.len(), expected_number_variants);
+    }
+
+    #[test]
+    #[should_panic(expected = "Fetching bed loci from non bgzipped")]
+    fn test_build_variant_list_exception() {
+        build_variant_list(
+            "data/test.vcf",
+            true,
+            10,
+            vec![String::from("1:38145491-38145540")],
+        );
     }
 
     #[rstest]

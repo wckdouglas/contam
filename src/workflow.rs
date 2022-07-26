@@ -112,7 +112,6 @@ mod tests {
     #[case(false, false, 1100, None, None, 0.043, None)]
     #[case(true, true, 200, None, None, 0.001, Some("data/test.bed"))] // fetch region from bed
     #[case(true, true, 200, None, None, 0.046, None)] // fetch region from bed
-    #[case(false, true, 200, None, None, 0.046, Some("data/test.bed"))] // non-gz input but given a bed, will skip the query part and use all variants
     fn test_workflow(
         #[case] gz_input: bool,
         #[case] snv_only_flag: bool,
@@ -137,6 +136,19 @@ mod tests {
             variant_json,
         );
         assert_approx_eq!(best_guess_contam_level, expected_out);
+    }
+
+    #[test]
+    #[should_panic(expected = "Fetching bed loci from non bgzipped")]
+    fn test_workflow_exception() {
+        workflow(
+            "data/test.vcf",
+            Some("data/test.bed"),
+            true,
+            100,
+            None,
+            None,
+        );
     }
 
     #[test]
