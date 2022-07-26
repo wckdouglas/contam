@@ -54,7 +54,7 @@ fn main() {
         let json_data = json!(
             {
                 "vcf_file": vcf_file,
-                "contamination_level": best_guess_contam_level * 100.0,
+                "contamination_percentage": best_guess_contam_level * 100.0,
             }
         );
         write_json(
