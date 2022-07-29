@@ -4,7 +4,7 @@ use std::vec::Vec;
 
 use crate::model::{VariantPosition, VariantType, Zygosity};
 
-/// calculate log probability of seeing a number of alt calls
+/// Calculate log probability of seeing a number of alt calls
 /// at some read depth for a given contamination level
 /// # Arguments
 /// * `variant_position` - a VariantPosition instance
@@ -12,6 +12,16 @@ use crate::model::{VariantPosition, VariantType, Zygosity};
 ///
 /// # Returns
 /// * log probability of seeing the given number of alt calls
+///
+/// # Examples
+///
+/// ```
+/// let variant = VariantPosition::new(
+///     "chr1", 1, 50, 25, VariantType::SNV, Zygosity::HETEROZYGOUS
+/// );
+/// let log_prob = calc_loglik_for_hypothetical_contam_level(&variant, 0.2);
+/// assert_approx_eq!(-3.2073523851, log_prob);
+/// ```
 fn calc_loglik_for_hypothetical_contam_level(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
@@ -25,7 +35,7 @@ fn calc_loglik_for_hypothetical_contam_level(
     log_prob
 }
 
-/// return log probability of a heterozygous variant for a given contamination level
+/// Return log probability of a heterozygous variant for a given contamination level
 /// for heterozygous variant, it is a little more complex, because it could be due to:
 /// 1. contamination that doesn't look like the HET ALT allele: we expect lower HET alt allele frequency
 /// 2. contamination that doesn't look like the HOM ALT allele: we expect High HET alt allele frequency

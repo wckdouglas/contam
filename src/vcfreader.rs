@@ -15,12 +15,13 @@ use std::vec::Vec;
 /// Evaluate a vcf record and determine whether it should be collected
 /// for estimating contamination
 ///
-/// Arguments
-/// --------
+/// # Arguments
+///
 /// - record: a vcf record from noodles_vcf
 /// - variants: a mutable list containing the accepted variants
 /// - depth_threshold: if the variant has DP tag lower than this, it will be rejected
 /// - snv_only_flag: boolean flag indicating whether we should skip all InDel variants
+///
 fn filter_variants(
     record: &Record,
     depth_threshold: usize,
@@ -85,13 +86,20 @@ fn filter_variants(
 
 /// Colelcting variants from a vcf file
 ///
-/// Arguments:
+/// # Arguments:
 /// - vcf_file: file path to the vcf file we want to parse
 /// - snv_only_flag: boolean flag indicating whether we shopuld only look at SNV instead of both SNV and indel
 /// - depth_threshold: we will skip any variants with DP tag lower than this threshold
 ///
-/// Returns:
+/// # Returns:
 /// - a list of varaints that passed the given filters
+///
+/// # Examples
+///
+/// ```
+/// let variant_list = build_variant_list("data/test.vcf", True, 100, None);
+/// assert_eq!(variant_list.len(), 7);
+/// ```
 pub fn build_variant_list(
     vcf_file: &str,
     snv_only_flag: bool,

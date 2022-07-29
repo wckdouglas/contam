@@ -25,15 +25,22 @@ pub fn write_json(filename: &str, json_string: String) {
 /// the actual workflow to takes in a variant vcf file and calcualte the
 /// contamination level
 ///
-/// Arguments:
+/// # Arguments:
 ///
-/// - vcf_file: the file path to the input vcf file for the analysis
-/// - snv_only_flag: boolean flag indicating whether we should only look at SNV instead of both SNV and indel
-/// - depth_threshold: removing all variants with read depth below this threshold
-/// - prob_json: for debug, a json file name for writing the contam level and the
+/// * vcf_file: the file path to the input vcf file for the analysis
+/// * snv_only_flag: boolean flag indicating whether we should only look at SNV instead of both SNV and indel
+/// * depth_threshold: removing all variants with read depth below this threshold
+/// * prob_json: for debug, a json file name for writing the contam level and the
 ///              respecitive log likelihoos into ("_no_file" will turn off writing a file)
-/// - prob_json: for debug, a json file name for writing the list of variants that are being
+/// * prob_json: for debug, a json file name for writing the list of variants that are being
 ///              used for the contam level compuatation ("_no_file" will turn off writing a file)
+///
+/// # Examples:
+///
+/// ```
+/// let best_guess_contam = workflow("data/test.vcf", "data/test.bed", true, 100, "prob.json", "variant.json");
+/// assert_eq!(best_guess_contam, 0.001);
+/// ```
 pub fn workflow(
     vcf_file: &str,
     loci_bed: Option<&str>,
@@ -43,7 +50,10 @@ pub fn workflow(
     variant_json: Option<&str>,
 ) -> f64 {
     // collect varaints
-    let regions: Vec<String> = read_bed(loci_bed);
+    let regions: Vec<String> = match loci_bed {
+        Some(bed) => read_bed(bed),
+        _ => vec![],
+    };
     let variant_vector: Vec<VariantPosition> =
         build_variant_list(&*vcf_file, snv_only_flag, depth_threshold, regions);
 

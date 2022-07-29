@@ -4,37 +4,59 @@ use serde::{Deserialize, Serialize};
 use std::string::String;
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
+/// variant types in the vcf file
 pub enum VariantType {
-    /// variant types in the vcf file
+    /// a single nucleotide variant
     SNV,
+    /// insertion or deletion
     INDEL,
 }
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
+/// zygostiy of a variant
 pub enum Zygosity {
-    /// zygostiy of a variant
+    /// a homozygous variant
     HOMOZYGOUS,
+    /// a heterozygous variant
     HETEROZYGOUS,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+/// A struct to hold the contamination estimation result
 pub struct ContamProbResult {
+    /// for the given contamination level
     pub contamination_level: f64,
+    /// what is the log_likelihood given the observed variants?
     pub log_likelihood: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+/// data structure for  a variant position
 pub struct VariantPosition {
-    /// data structure for  a variant position
+    /// contig name for where the variant is located at
     pub contig: String,
+    /// genomic position of the variant
     pub position: usize,
-    pub total_read_depth: usize, // total read depth at the variant position
-    pub alt_depth: usize,        // total read that showed alt alleles in the variant position
-    pub variant_type: VariantType, // is it a indel or snv?
-    pub zygosity: Zygosity,      // the zygosity of the variant
+    /// total read depth at the variant position
+    pub total_read_depth: usize,
+    /// total read that showed alt alleles in the variant position
+    pub alt_depth: usize,
+    /// is it a indel or snv?
+    pub variant_type: VariantType,
+    /// the zygosity of the variant
+    pub zygosity: Zygosity,
 }
 
 impl VariantPosition {
+    /// Create a VariantPosition object
+    ///
+    /// Example::
+    ///
+    /// ```
+    /// let variant = VariantPosition::new(
+    ///     "chr1", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS
+    /// );
+    /// ```
     pub fn new(
         contig: &str,
         position: usize,
