@@ -7,8 +7,8 @@ use crate::model::{VariantPosition, VariantType, Zygosity};
 /// Calculate log probability of seeing a number of alt calls
 /// at some read depth for a given contamination level
 /// # Arguments
-/// * `variant_position` - a VariantPosition instance
-/// * hypothetical_contamination_level - a conamination level to test for
+/// * `variant_position`: a VariantPosition instance
+/// * `hypothetical_contamination_level`: a conamination level to test for
 ///
 /// # Returns
 /// * log probability of seeing the given number of alt calls
@@ -44,8 +44,8 @@ fn calc_loglik_for_hypothetical_contam_level(
 /// 5. contamination being called as ALT
 ///
 /// # Arguments
-/// * variant_position - the positional data of the heterozygous variant
-/// * hypothetical_contamination_level: hypothetical contamination level
+/// * `variant_position`: the positional data of the heterozygous variant
+/// * `hypothetical_contamination_level`: hypothetical contamination level
 ///
 /// # Returns
 /// * maximum log probability of seeing the given alt depth (across all the tested hypotheses)
@@ -74,9 +74,9 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
 /// variant
 ///
 /// # Arguments
-/// --------
-/// * variant_position: A VariantPosition object to be evaluated
-/// * hypothetical_contamination_level: hypothetical contamination level to test
+///
+/// * `variant_position`: A VariantPosition object to be evaluated
+/// * `hypothetical_contamination_level`: hypothetical contamination level to test
 ///
 /// # Returns
 ///
@@ -106,7 +106,7 @@ fn calaulate_loglik_for_variant_position(
 ///
 /// # Arguments
 ///
-/// * `variant_vector` - a list of VariantPosition
+/// * `variant_list` - a list of VariantPosition
 /// * `hypothetical_contamination_level` - the hypthetical contamination level
 ///
 /// # Returns
@@ -126,14 +126,14 @@ fn calaulate_loglik_for_variant_position(
 /// assert_approx_eq!(log_prob, expected_log_prob)
 /// ```
 pub fn calculate_contam_hypothesis(
-    variant_vector: &Vec<VariantPosition>,
+    variant_list: &Vec<VariantPosition>,
     hypothetical_contamination_level: f64,
 ) -> f64 {
     if !(0.0..1.0).contains(&hypothetical_contamination_level) {
         panic!("Contamination level must be > 0 and <= 1");
     }
 
-    let log_prob_sum: f64 = variant_vector
+    let log_prob_sum: f64 = variant_list
         .iter()
         .map(|variant_position| {
             calaulate_loglik_for_variant_position(

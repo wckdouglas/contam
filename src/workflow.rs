@@ -27,13 +27,16 @@ pub fn write_json(filename: &str, json_string: String) {
 ///
 /// # Arguments:
 ///
-/// * vcf_file: the file path to the input vcf file for the analysis
-/// * snv_only_flag: boolean flag indicating whether we should only look at SNV instead of both SNV and indel
-/// * depth_threshold: removing all variants with read depth below this threshold
-/// * prob_json: for debug, a json file name for writing the contam level and the
+/// * `vcf_file`: the file path to the input vcf file for the analysis
+/// * `snv_only_flag`: boolean flag indicating whether we should only look at SNV instead of both SNV and indel
+/// * `depth_threshold`: removing all variants with read depth below this threshold
+/// * `prob_json`: for debug, a json file name for writing the contam level and the
 ///              respecitive log likelihoos into ("_no_file" will turn off writing a file)
-/// * prob_json: for debug, a json file name for writing the list of variants that are being
+/// * `prob_json`: for debug, a json file name for writing the list of variants that are being
 ///              used for the contam level compuatation ("_no_file" will turn off writing a file)
+///
+/// # Return:
+/// * the contamination level with the highest log likelihood
 ///
 /// # Examples:
 ///

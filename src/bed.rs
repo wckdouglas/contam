@@ -11,10 +11,10 @@ use noodles_bed as bed;
 /// Reading bed file and output a list of regions string (contig:start-end)
 ///
 /// # Arguments:
-/// * bed_file: bed file path pointing to the data to be parsed
+/// * `bed_file`: bed file path pointing to the data to be parsed
 ///
 ///
-/// Return:
+/// # Return:
 /// * List of region string
 ///
 /// # Examples
@@ -22,6 +22,7 @@ use noodles_bed as bed;
 /// ```
 /// let region_list = read_bed("data/test.bed");
 /// assert_eq!(region_list.len(), 4);
+/// assert_eq!(region_list[0], "X:2-5");
 /// ```
 pub fn read_bed(bed_file: &str) -> Vec<String> {
     let mut region_list: Vec<String> = vec![];

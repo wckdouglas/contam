@@ -17,11 +17,13 @@ use std::vec::Vec;
 ///
 /// # Arguments
 ///
-/// - record: a vcf record from noodles_vcf
-/// - variants: a mutable list containing the accepted variants
-/// - depth_threshold: if the variant has DP tag lower than this, it will be rejected
-/// - snv_only_flag: boolean flag indicating whether we should skip all InDel variants
+/// - `record`: a vcf record from noodles_vcf
+/// - `variants`: a mutable list containing the accepted variants
+/// - `depth_threshold`: if the variant has DP tag lower than this, it will be rejected
+/// - `snv_only_flag`: boolean flag indicating whether we should skip all InDel variants
 ///
+/// # Return
+/// - `VariantPosition` object or a `Option::None` if the variant didn't pass the filters
 fn filter_variants(
     record: &Record,
     depth_threshold: usize,
@@ -87,12 +89,12 @@ fn filter_variants(
 /// Colelcting variants from a vcf file
 ///
 /// # Arguments:
-/// - vcf_file: file path to the vcf file we want to parse
-/// - snv_only_flag: boolean flag indicating whether we shopuld only look at SNV instead of both SNV and indel
-/// - depth_threshold: we will skip any variants with DP tag lower than this threshold
+/// - `vcf_file`: file path to the vcf file we want to parse
+/// - `snv_only_flag`: boolean flag indicating whether we shopuld only look at SNV instead of both SNV and indel
+/// - `depth_threshold`: we will skip any variants with DP tag lower than this threshold
 ///
 /// # Returns:
-/// - a list of varaints that passed the given filters
+/// - a list of variants that passed the given filters
 ///
 /// # Examples
 ///
