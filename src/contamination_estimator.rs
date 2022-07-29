@@ -105,14 +105,18 @@ fn calaulate_loglik_for_variant_position(
 /// we calculate the log probabilty of seeing the given numbers of alt base across all positions
 ///
 /// # Arguments
-/// ----------------
 ///
 /// * `variant_vector` - a list of VariantPosition
 /// * `hypothetical_contamination_level` - the hypthetical contamination level
 ///
-/// Returns
+/// # Returns
 ///
-/// the sum of log probabilty of seeing the given list of variants at the given contam level
+/// * the sum of log probabilty of seeing the given list of variants at the given contam level
+///
+/// # Examples
+///
+/// ```
+/// ```
 pub fn calculate_contam_hypothesis(
     variant_vector: &Vec<VariantPosition>,
     hypothetical_contamination_level: f64,
@@ -148,6 +152,11 @@ mod tests {
     #[case(50, 30, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS)] // case 3 in HET
     #[case(50, 20, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS)] // case 3 in HET
     #[case(50, 5, 0.1,  -1.68780709970, Zygosity::HETEROZYGOUS)] // case 4 in HET
+    /// SUT:  calaulate_loglik_for_variant_position
+    /// Collaborators:
+    ///     - calc_loglik_for_hypothetical_contam_level
+    ///     - calc_loglik_for_hypothetical_contam_level_heterozygous
+    ///
     fn test_calaulate_loglik_for_variant_position(
         #[case] total_read_depth: usize,
         #[case] alt_depth: usize,
@@ -165,5 +174,18 @@ mod tests {
         );
         let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level);
         assert_approx_eq!(p, expected_out);
+    }
+
+    #[rstest]
+    #[case(0.0,  -2.5308764039)]
+    #[case(0.1,  -13.569444762)]
+    #[case(0.3,  -42.913904771)]
+    fn test_calculate_contam_hypothesis(#[case] contam_level: f64, #[case] expected_log_prob: f64) {
+        let variant_list = vec![
+            VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS),
+            VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS),
+        ];
+        let log_prob = calculate_contam_hypothesis(&variant_list, contam_level);
+        assert_approx_eq!(log_prob, expected_log_prob)
     }
 }
