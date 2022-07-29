@@ -115,7 +115,15 @@ fn calaulate_loglik_for_variant_position(
 ///
 /// # Examples
 ///
-/// ```
+/// ```        
+/// let contam_level: f64 = 0.0;
+/// let expected_log_prob: f64 = -2.5308764039;
+/// let variant_list: Vec<VariantPosition> = vec![
+///     VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS),
+///     VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS),
+/// ];
+/// let log_prob: f64 = calculate_contam_hypothesis(&variant_list, contam_level);
+/// assert_approx_eq!(log_prob, expected_log_prob)
 /// ```
 pub fn calculate_contam_hypothesis(
     variant_vector: &Vec<VariantPosition>,
