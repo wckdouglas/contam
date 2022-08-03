@@ -20,6 +20,7 @@ use noodles_bed as bed;
 /// # Examples
 ///
 /// ```
+/// use diploid_contam_estimator::bed::read_bed;
 /// let region_list = read_bed("data/test.bed");
 /// assert_eq!(region_list.len(), 4);
 /// assert_eq!(region_list[0], "X:2-5");

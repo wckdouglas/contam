@@ -54,10 +54,11 @@ pub fn write_json(filename: &str, json_string: String) {
 /// # Examples:
 ///
 /// ```
-/// let best_guess_contam = workflow("data/test.vcf", "data/test.bed", true, 100, "prob.json", "variant.json");
-/// assert_eq!(best_guess_contam, 0.001);
+/// use diploid_contam_estimator::run;
+/// let best_guess_contam = run("data/test.vcf", None, true, 100, Some("prob.json"), Some("variant.json"));
+/// assert_eq!(best_guess_contam, 0.046);
 /// ```
-pub fn workflow(
+pub fn run(
     vcf_file: &str,
     loci_bed: Option<&str>,
     snv_only_flag: bool,
@@ -138,7 +139,7 @@ mod tests {
     #[case(false, false, 1100, None, None, 0.043, None)]
     #[case(true, true, 200, None, None, 0.001, Some("data/test.bed"))] // fetch region from bed
     #[case(true, true, 200, None, None, 0.046, None)] // fetch region from bed
-    fn test_workflow(
+    fn test_run(
         #[case] gz_input: bool,
         #[case] snv_only_flag: bool,
         #[case] depth_threshold: usize,
@@ -153,7 +154,7 @@ mod tests {
             false => "data/test.vcf",
             true => "data/test.vcf.gz",
         };
-        let best_guess_contam_level: f64 = workflow(
+        let best_guess_contam_level: f64 = run(
             vcf_file,
             bed_file,
             snv_only_flag,
@@ -167,7 +168,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Fetching bed loci from non bgzipped")]
     fn test_workflow_exception() {
-        workflow(
+        run(
             "data/test.vcf",
             Some("data/test.bed"),
             true,

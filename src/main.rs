@@ -1,5 +1,5 @@
 use diploid_contam_estimator::cli::parse_args;
-use diploid_contam_estimator::{workflow, write_json};
+use diploid_contam_estimator::{run, write_json};
 use log::info;
 use serde_json::json;
 use std::option::Option;
@@ -21,7 +21,7 @@ fn main() {
         .unwrap();
     let snv_only_flag: bool = args.is_present("snv_only");
 
-    let best_guess_contam_level: f64 = workflow(
+    let best_guess_contam_level: f64 = run(
         vcf_file,
         loci_bed,
         snv_only_flag,
