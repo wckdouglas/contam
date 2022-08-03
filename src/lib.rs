@@ -5,13 +5,13 @@ extern crate serde;
 extern crate serde_json;
 extern crate statrs;
 
-pub mod bed;
+pub mod bedreader;
 pub mod cli;
 pub mod contamination_estimator;
 pub mod model;
 pub mod vcfreader;
 
-use bed::read_bed;
+use bedreader::read_bed;
 use contamination_estimator::calculate_contam_hypothesis;
 use log::info;
 use model::{ContamProbResult, VariantPosition};
