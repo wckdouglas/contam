@@ -1,8 +1,6 @@
-use crate::statrs::distribution::{Binomial, Discrete};
-
-use std::vec::Vec;
-
 use crate::model::{VariantPosition, VariantType, Zygosity};
+use crate::statrs::distribution::{Binomial, Discrete};
+use std::vec::Vec;
 
 /// Calculate log probability of seeing a number of alt calls
 /// at some read depth for a given contamination level

@@ -1,13 +1,26 @@
-use crate::bed::read_bed;
-use crate::contamination_estimator::calculate_contam_hypothesis;
-use crate::model::{ContamProbResult, VariantPosition};
-use crate::vcfreader::build_variant_list;
+extern crate noodles_bgzf;
+extern crate noodles_tabix;
+extern crate noodles_vcf;
+extern crate serde;
+extern crate serde_json;
+extern crate statrs;
+
+pub mod bed;
+pub mod cli;
+pub mod contamination_estimator;
+pub mod model;
+pub mod vcfreader;
+
+use bed::read_bed;
+use contamination_estimator::calculate_contam_hypothesis;
 use log::info;
+use model::{ContamProbResult, VariantPosition};
 use std::fs::File;
 use std::io::Write;
 use std::option::Option;
 use std::string::String;
 use std::vec::Vec;
+use vcfreader::build_variant_list;
 
 const MAX_CONTAM: usize = 400; // should be 0.399 because we divide 1000
 

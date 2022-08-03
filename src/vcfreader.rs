@@ -1,5 +1,4 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
-
 use log::info;
 use noodles_bgzf as bgzf;
 use noodles_tabix as tabix;
