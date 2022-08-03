@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to a info header record."]],"mod":[["key","VCF header info key."],["ty","VCF header information field value type."]],"struct":[["Info","A VCF header information record (`INFO`)."]]});

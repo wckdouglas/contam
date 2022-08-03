@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to a pedigree record."]],"struct":[["Pedigree","A VCF header pedigree record (`PEDIGREE`)."]]});

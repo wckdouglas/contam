@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["virtual_position","BGZF virtual position."],["writer","BGZF writer."]],"struct":[["Reader","A BGZF reader."]]});

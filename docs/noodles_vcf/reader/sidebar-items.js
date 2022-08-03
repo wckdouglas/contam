@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Query","An iterator over records of a VCF reader that intersects a given region."],["Reader","A VCF reader."],["Records","An iterator over records of a VCF reader."]]});

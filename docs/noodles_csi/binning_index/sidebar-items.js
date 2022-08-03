@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["merge_chunks","Merges a list of chunks into a list of non-overlapping chunks."],["optimize_chunks","Optimizes a list of chunks into a list of non-overlapping chunks."]],"trait":[["BinningIndex","A binning index."],["ReferenceSequenceExt","An extension that adds methods to binning index reference sequence types."]]});

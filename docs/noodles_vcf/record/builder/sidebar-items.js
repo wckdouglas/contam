@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["BuildError","An error returned when a VCF record fails to build."]],"struct":[["Builder","A VCF record builder."]]});

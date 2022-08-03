@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Bin","A tabix index reference sequence bin."]]});

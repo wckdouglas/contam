@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when a raw VCF header file format fails to parse."]],"struct":[["FileFormat","A VCF header file format."]]});

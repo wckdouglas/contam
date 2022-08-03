@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Builder","A BGZF writer builder."],["CompressionLevel","A DEFLATE compression level."],["Writer","A BZGF writer."]]});

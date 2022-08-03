@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["noodles_csi"] = [];
+implementors["noodles_tabix"] = [{"text":"impl <a class=\"trait\" href=\"noodles_csi/binning_index/reference_sequence_ext/trait.ReferenceSequenceExt.html\" title=\"trait noodles_csi::binning_index::reference_sequence_ext::ReferenceSequenceExt\">ReferenceSequenceExt</a> for <a class=\"struct\" href=\"noodles_tabix/index/reference_sequence/struct.ReferenceSequence.html\" title=\"struct noodles_tabix::index::reference_sequence::ReferenceSequence\">ReferenceSequence</a>","synthetic":false,"types":["noodles_tabix::index::reference_sequence::ReferenceSequence"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

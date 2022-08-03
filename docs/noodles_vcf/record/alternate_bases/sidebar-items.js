@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when raw VCF alternate bases fail to parse."]],"mod":[["allele","VCF record alternate bases allele and symbol."]],"struct":[["AlternateBases","VCF record alternate bases (`ALT`)."]]});

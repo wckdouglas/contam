@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["position","1-based position."],["region","Genomic region."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when a raw VCF record genotype value fails to parse."],["TryFromAllelesError","An error returned when a VCF record genotype alleles fail to convert."]],"mod":[["allele","VCF record genotype value allele."]],"struct":[["Genotype","A VCF record genotype value."]]});

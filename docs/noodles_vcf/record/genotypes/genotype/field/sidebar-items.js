@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when a raw VCF record info field value fails to parse."]],"mod":[["value","VCF record genotype field value."]],"struct":[["Field","A VCF record genotype field."]]});

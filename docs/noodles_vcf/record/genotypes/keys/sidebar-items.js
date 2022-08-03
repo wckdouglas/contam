@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when raw VCF record genotypes keys fail to parse."],["TryFromKeyVectorError","An error returned when a vector of record genotypes keys fails to convert to a format."]],"struct":[["Keys","A VCF record genotypes keys, i.e., `FORMAT`."]]});

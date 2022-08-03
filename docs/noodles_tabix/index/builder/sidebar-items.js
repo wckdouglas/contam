@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Builder","A tabix index builder."]]});

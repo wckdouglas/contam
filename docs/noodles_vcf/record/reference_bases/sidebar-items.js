@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when raw VCF reference bases fail to parse."],["TryFromBaseVectorError","An error returned when a vector of bases fails to convert to reference bases."]],"mod":[["base","VCF record reference base."]],"struct":[["ReferenceBases","VCF record reference bases."]]});

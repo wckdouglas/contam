@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when a raw BED record score fails to parse."]],"struct":[["Score","A BED record score."],["TryFromIntError","An error returned when a raw BED record score fails to convert."]]});

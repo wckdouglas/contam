@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ParseError","An error returned when a raw VCF record info field value fails to parse."],["Value","A VCF record info field value."]]});
