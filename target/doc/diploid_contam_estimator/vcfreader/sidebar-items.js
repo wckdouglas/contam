@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["build_variant_list","Colelcting variants from a vcf file"]]});

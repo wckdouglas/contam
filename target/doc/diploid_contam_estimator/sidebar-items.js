@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["run","the actual workflow to takes in a variant vcf file and calcualte the contamination level"],["write_json","write string to file"]],"mod":[["bedreader",""],["cli",""],["contamination_estimator",""],["model",""],["vcfreader",""]]});
