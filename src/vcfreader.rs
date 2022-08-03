@@ -1,5 +1,4 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
-
 use log::info;
 use noodles_bgzf as bgzf;
 use noodles_tabix as tabix;
@@ -102,7 +101,8 @@ fn filter_variants(
 /// # Examples
 ///
 /// ```
-/// let variant_list = build_variant_list("data/test.vcf", True, 100, None);
+/// use diploid_contam_estimator::vcfreader::build_variant_list;
+/// let variant_list = build_variant_list("data/test.vcf", true, 100, vec![]);
 /// assert_eq!(variant_list.len(), 7);
 /// ```
 pub fn build_variant_list(

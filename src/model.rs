@@ -53,6 +53,7 @@ impl VariantPosition {
     /// Example::
     ///
     /// ```
+    /// use diploid_contam_estimator::model::{VariantPosition, Zygosity, VariantType};
     /// let variant = VariantPosition::new(
     ///     "chr1", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS
     /// );

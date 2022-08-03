@@ -1,8 +1,6 @@
-use crate::statrs::distribution::{Binomial, Discrete};
-
-use std::vec::Vec;
-
 use crate::model::{VariantPosition, VariantType, Zygosity};
+use crate::statrs::distribution::{Binomial, Discrete};
+use std::vec::Vec;
 
 /// Calculate log probability of seeing a number of alt calls
 /// at some read depth for a given contamination level
@@ -16,13 +14,16 @@ use crate::model::{VariantPosition, VariantType, Zygosity};
 /// # Examples
 ///
 /// ```
+/// use assert_approx_eq::assert_approx_eq;
+/// use diploid_contam_estimator::contamination_estimator::calc_loglik_for_hypothetical_contam_level;
+/// use diploid_contam_estimator::model::{VariantPosition, VariantType, Zygosity};
 /// let variant = VariantPosition::new(
 ///     "chr1", 1, 50, 25, VariantType::SNV, Zygosity::HETEROZYGOUS
-/// );
+/// ).unwrap();
 /// let log_prob = calc_loglik_for_hypothetical_contam_level(&variant, 0.2);
-/// assert_approx_eq!(-3.2073523851, log_prob);
+/// assert_approx_eq!(-13.343980087895773, log_prob);
 /// ```
-fn calc_loglik_for_hypothetical_contam_level(
+pub fn calc_loglik_for_hypothetical_contam_level(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
 ) -> f64 {
@@ -116,11 +117,14 @@ fn calaulate_loglik_for_variant_position(
 /// # Examples
 ///
 /// ```        
+/// use assert_approx_eq::assert_approx_eq;
+/// use diploid_contam_estimator::contamination_estimator::calculate_contam_hypothesis;
+/// use diploid_contam_estimator::model::{VariantPosition, VariantType, Zygosity};
 /// let contam_level: f64 = 0.0;
 /// let expected_log_prob: f64 = -2.5308764039;
 /// let variant_list: Vec<VariantPosition> = vec![
-///     VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS),
-///     VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS),
+///     VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS).unwrap(),
+///     VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS).unwrap(),
 /// ];
 /// let log_prob: f64 = calculate_contam_hypothesis(&variant_list, contam_level);
 /// assert_approx_eq!(log_prob, expected_log_prob)
