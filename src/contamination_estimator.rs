@@ -179,7 +179,8 @@ mod tests {
             alt_depth,
             VariantType::SNV,
             zygosity,
-        );
+        )
+        .unwrap();
         let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level);
         assert_approx_eq!(p, expected_out);
     }
@@ -190,8 +191,9 @@ mod tests {
     #[case(0.3,  -42.913904771)]
     fn test_calculate_contam_hypothesis(#[case] contam_level: f64, #[case] expected_log_prob: f64) {
         let variant_list = vec![
-            VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS),
-            VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS),
+            VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS)
+                .unwrap(),
+            VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS).unwrap(),
         ];
         let log_prob = calculate_contam_hypothesis(&variant_list, contam_level);
         assert_approx_eq!(log_prob, expected_log_prob)

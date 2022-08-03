@@ -64,19 +64,19 @@ impl VariantPosition {
         alt_depth: usize,
         variant_type: VariantType,
         zygosity: Zygosity,
-    ) -> Self {
+    ) -> Result<VariantPosition, &str> {
         if total_read_depth < alt_depth || total_read_depth < 1 {
             // validation of the input
-            panic!("Total read depth should be >= alt depth and positive")
+            return Err("Total read depth should be >= alt depth and positive");
         }
-        Self {
+        Ok(Self {
             contig: contig.to_string(),
             position: position,
             total_read_depth: total_read_depth,
             alt_depth: alt_depth,
             variant_type: variant_type,
             zygosity: zygosity,
-        }
+        })
     }
 }
 
@@ -94,7 +94,8 @@ mod tests {
             101,
             VariantType::SNV,
             Zygosity::HETEROZYGOUS,
-        );
+        )
+        .unwrap();
     }
 
     #[test]
@@ -108,6 +109,7 @@ mod tests {
             101,
             VariantType::SNV,
             Zygosity::HETEROZYGOUS,
-        );
+        )
+        .unwrap();
     }
 }

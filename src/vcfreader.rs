@@ -72,14 +72,17 @@ fn filter_variants(
             if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
                 // whether we want snv-only or not
                 // make a new VariantPosition here and put into the list
-                return Some(VariantPosition::new(
-                    &record.chromosome().to_string(),
-                    usize::try_from(record.position()).unwrap(),
-                    read_depth as usize, // only sample in the vcf
-                    alt_depth,
-                    variant_type,
-                    zygosity,
-                ));
+                return Some(
+                    VariantPosition::new(
+                        &record.chromosome().to_string(),
+                        usize::try_from(record.position()).unwrap(),
+                        read_depth as usize, // only sample in the vcf
+                        alt_depth,
+                        variant_type,
+                        zygosity,
+                    )
+                    .expect("Variant record cannot be converted to VariantPosition"),
+                );
             }
         }
     }
