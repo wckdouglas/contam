@@ -1,5 +1,4 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
-
 use log::info;
 use noodles_bgzf as bgzf;
 use noodles_tabix as tabix;
@@ -72,14 +71,17 @@ fn filter_variants(
             if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
                 // whether we want snv-only or not
                 // make a new VariantPosition here and put into the list
-                return Some(VariantPosition::new(
-                    &record.chromosome().to_string(),
-                    usize::try_from(record.position()).unwrap(),
-                    read_depth as usize, // only sample in the vcf
-                    alt_depth,
-                    variant_type,
-                    zygosity,
-                ));
+                return Some(
+                    VariantPosition::new(
+                        &record.chromosome().to_string(),
+                        usize::try_from(record.position()).unwrap(),
+                        read_depth as usize, // only sample in the vcf
+                        alt_depth,
+                        variant_type,
+                        zygosity,
+                    )
+                    .expect("Variant record cannot be converted to VariantPosition"),
+                );
             }
         }
     }
@@ -99,7 +101,8 @@ fn filter_variants(
 /// # Examples
 ///
 /// ```
-/// let variant_list = build_variant_list("data/test.vcf", True, 100, None);
+/// use diploid_contam_estimator::vcfreader::build_variant_list;
+/// let variant_list = build_variant_list("data/test.vcf", true, 100, vec![]);
 /// assert_eq!(variant_list.len(), 7);
 /// ```
 pub fn build_variant_list(

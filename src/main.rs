@@ -1,22 +1,8 @@
-extern crate noodles_bgzf;
-extern crate noodles_tabix;
-extern crate noodles_vcf;
-extern crate serde;
-extern crate serde_json;
-extern crate statrs;
-
-mod bed;
-mod cli;
-mod contamination_estimator;
-mod model;
-mod vcfreader;
-mod workflow;
-
-use cli::parse_args;
+use diploid_contam_estimator::cli::parse_args;
+use diploid_contam_estimator::{run, write_json};
 use log::info;
 use serde_json::json;
 use std::option::Option;
-use workflow::{workflow, write_json};
 
 fn main() {
     // parse cli argumnets
@@ -35,7 +21,7 @@ fn main() {
         .unwrap();
     let snv_only_flag: bool = args.is_present("snv_only");
 
-    let best_guess_contam_level: f64 = workflow(
+    let best_guess_contam_level: f64 = run(
         vcf_file,
         loci_bed,
         snv_only_flag,
