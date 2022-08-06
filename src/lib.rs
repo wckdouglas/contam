@@ -1,10 +1,3 @@
-extern crate noodles_bgzf;
-extern crate noodles_tabix;
-extern crate noodles_vcf;
-extern crate serde;
-extern crate serde_json;
-extern crate statrs;
-
 pub mod bedreader;
 pub mod cli;
 pub mod contamination_estimator;

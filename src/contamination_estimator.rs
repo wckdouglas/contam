@@ -1,5 +1,5 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
-use crate::statrs::distribution::{Binomial, Discrete};
+use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
 
 /// Calculate log probability of seeing a number of alt calls
