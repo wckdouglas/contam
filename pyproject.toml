@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "estimating contamination from a diploid sequencing from VCF"
 authors = ["Douglas Wu <wckdouglas@gmail.com>"]
 license = "MIT"
+packages = [{"include" = "diploid_contam"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
