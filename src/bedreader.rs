@@ -1,12 +1,9 @@
-extern crate noodles_bed;
-
 use log::info;
+use noodles_bed as bed;
 use std::fs::File;
 use std::io::BufReader;
 use std::string::String;
 use std::vec::Vec;
-
-use noodles_bed as bed;
 
 /// Reading bed file and output a list of regions string (contig:start-end)
 ///
