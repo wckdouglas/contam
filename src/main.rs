@@ -4,7 +4,7 @@ use log::info;
 use serde_json::json;
 use std::option::Option;
 
-fn main() {
+fn main() -> i8 {
     // parse cli argumnets
     env_logger::init();
     let args = parse_args();
@@ -21,7 +21,7 @@ fn main() {
         .unwrap();
     let snv_only_flag: bool = args.is_present("snv_only");
 
-    let best_guess_contam_level: f64 = run(
+    let best_guess_contam_level: Result<f64, String> = run(
         vcf_file,
         loci_bed,
         snv_only_flag,
@@ -31,22 +31,28 @@ fn main() {
     );
 
     // this is the resultant number that we want!
-    info!(
-        "Maximum likelihood contamination level: {}",
-        best_guess_contam_level
-    );
+    let contam = match best_guess_contam_level {
+        Ok(contam) => contam,
+        Err(e) => {
+            println!("{}", e);
+            return 1;
+        }
+    };
+    info!("Maximum likelihood contamination level: {}", contam);
 
     if out_json.is_some() {
         let json_data = json!(
             {
                 "vcf_file": vcf_file,
-                "contamination_percentage": best_guess_contam_level * 100.0,
+                "contamination_percentage": contam * 100.0,
             }
         );
         write_json(
             out_json.unwrap(),
             serde_json::to_string_pretty(&json_data).unwrap(),
-        );
+        )
+        .unwrap();
         info!("Written result json at: {}", out_json.unwrap());
     }
+    return 0;
 }

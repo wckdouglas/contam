@@ -21,7 +21,7 @@ use noodles_bed as bed;
 ///
 /// ```
 /// use diploid_contam_estimator::bedreader::read_bed;
-/// let region_list = read_bed("data/test.bed");
+/// let region_list = read_bed("data/test.bed").unwrap();
 /// assert_eq!(region_list.len(), 4);
 /// assert_eq!(region_list[0], "X:2-5");
 /// ```

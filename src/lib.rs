@@ -22,10 +22,11 @@ const MAX_CONTAM: usize = 400; // should be 0.399 because we divide 1000
 /// Arguments:
 /// - filename: the file name of the new file to be written to
 /// - json_string: String to be written to the file
-pub fn write_json(filename: &str, json_string: String) {
-    let mut output_file = File::create(filename).unwrap();
+pub fn write_json(filename: &str, json_string: String) -> Result<(), String> {
+    let mut output_file = File::create(filename).map_err(|e| e.to_string())?;
     write!(output_file, "{}", json_string).unwrap();
-    info!("Written debug file at: {}", filename)
+    info!("Written debug file at: {}", filename);
+    Ok(())
 }
 
 /// the actual workflow to takes in a variant vcf file and calcualte the
@@ -48,7 +49,7 @@ pub fn write_json(filename: &str, json_string: String) {
 ///
 /// ```
 /// use diploid_contam_estimator::run;
-/// let best_guess_contam = run("data/test.vcf", None, true, 100, Some("prob.json"), Some("variant.json"));
+/// let best_guess_contam = run("data/test.vcf", None, true, 100, Some("prob.json"), Some("variant.json")).unwrap();
 /// assert_eq!(best_guess_contam, 0.046);
 /// ```
 pub fn run(
@@ -58,10 +59,10 @@ pub fn run(
     depth_threshold: usize,
     prob_json: Option<&str>,
     variant_json: Option<&str>,
-) -> f64 {
+) -> Result<f64, String> {
     // collect varaints
     let regions: Vec<String> = match loci_bed {
-        Some(bed) => read_bed(bed),
+        Some(bed) => read_bed(bed)?,
         _ => vec![],
     };
     let variant_vector: Vec<VariantPosition> =
@@ -95,17 +96,22 @@ pub fn run(
 
     if prob_json.is_some() {
         // write result json file
-        let json_string = serde_json::to_string_pretty(&result_vector).unwrap();
-        write_json(prob_json.unwrap(), json_string)
+        let json_string =
+            serde_json::to_string_pretty(&result_vector).map_err(|e| e.to_string())?;
+        write_json(prob_json.ok_or("No prob json name found")?, json_string)?
     }
 
     if variant_json.is_some() {
         // write variant json file
-        let json_string = serde_json::to_string_pretty(&variant_vector).unwrap();
-        write_json(variant_json.unwrap(), json_string)
+        let json_string =
+            serde_json::to_string_pretty(&variant_vector).map_err(|e| e.to_string())?;
+        write_json(
+            variant_json.ok_or("No variant json name found")?,
+            json_string,
+        )?
     }
 
-    best_guess_contam_level
+    Ok(best_guess_contam_level)
 }
 
 #[cfg(test)]
@@ -154,7 +160,8 @@ mod tests {
             depth_threshold,
             prob_json,
             variant_json,
-        );
+        )
+        .unwrap();
         assert_approx_eq!(best_guess_contam_level, expected_out);
     }
 
@@ -168,13 +175,14 @@ mod tests {
             100,
             None,
             None,
-        );
+        )
+        .unwrap();
     }
 
     #[test]
     fn test_write_json() {
         let json_string = "{\"data/test.vcf\":0.046 }";
-        write_json("test.json", json_string.to_string());
+        write_json("test.json", json_string.to_string()).unwrap();
 
         let mut file = File::open("test.json").unwrap();
         let mut data = String::new();
