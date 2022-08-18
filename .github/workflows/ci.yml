@@ -69,6 +69,16 @@ jobs:
         with:
           command: test
 
+      - name: CI -- lint
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+
+      - name: CI -- format
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+
       - name: CI -- end-to-end
         env: 
           RUST_LOG: info

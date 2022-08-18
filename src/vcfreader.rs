@@ -68,7 +68,7 @@ fn filter_variants(
                 variant_type = VariantType::SNV;
             }
 
-            if !snv_only_flag || (snv_only_flag && variant_type == VariantType::SNV) {
+            if !snv_only_flag || variant_type == VariantType::SNV {
                 // whether we want snv-only or not
                 // make a new VariantPosition here and put into the list
                 return Some(
@@ -85,7 +85,7 @@ fn filter_variants(
             }
         }
     }
-    return None;
+    None
 }
 
 /// Colelcting variants from a vcf file
@@ -102,7 +102,7 @@ fn filter_variants(
 ///
 /// ```
 /// use diploid_contam_estimator::vcfreader::build_variant_list;
-/// let variant_list = build_variant_list("data/test.vcf", true, 100, vec![]);
+/// let variant_list = build_variant_list("data/test.vcf", true, 100, vec![]).unwrap();
 /// assert_eq!(variant_list.len(), 7);
 /// ```
 pub fn build_variant_list(
@@ -110,37 +110,42 @@ pub fn build_variant_list(
     snv_only_flag: bool,
     depth_threshold: usize,
     regions: Vec<String>,
-) -> Vec<VariantPosition> {
+) -> Result<Vec<VariantPosition>, String> {
     let mut variant_list: Vec<VariantPosition> = Vec::new();
     let is_gz_input = vcf_file.ends_with(".gz");
-    let is_fetch: bool = regions.len() > 0;
-    match (is_gz_input, is_fetch) {
+    let is_fetch: bool = !regions.is_empty();
+    let exit_code: Result<i8, String> = match (is_gz_input, is_fetch) {
         (true, true) => {
             let vcf_file_idx_fn = format!("{}.tbi", vcf_file);
             if metadata(&vcf_file_idx_fn).is_ok() {
-                let index = tabix::read(vcf_file_idx_fn).expect(
-                    "Error reading tabix file, tabix file is needed if a bed file is supplied",
-                );
-
+                let index = tabix::read(vcf_file_idx_fn).map_err(|e| e.to_string())?;
                 let mut reader = File::open(vcf_file)
                     .map(bgzf::Reader::new)
                     .map(vcf::Reader::new)
-                    .unwrap();
+                    .map_err(|e| e.to_string())?;
 
-                let raw_header = reader.read_header().expect("Error reading header");
-                let header = raw_header.parse().unwrap();
+                let raw_header = reader.read_header().map_err(|e| e.to_string())?;
+                let header = raw_header
+                    .parse()
+                    .map_err(|_| "Cannot parse header properly".to_string())?;
                 let mut variant_count: usize = 0;
                 for region in regions.iter() {
-                    let query = reader.query(&header, &index, &region.parse().unwrap());
+                    let query = reader.query(
+                        &header,
+                        &index,
+                        &region
+                            .parse()
+                            .map_err(|_| "Cannot fetch record properly".to_string())?,
+                    );
                     if query.is_ok() {
-                        for record in query.unwrap() {
+                        for record in query.map_err(|e| e.to_string())? {
                             let variant = filter_variants(
-                                &record.expect("Cannot read vcf record"),
+                                &record.map_err(|e| e.to_string())?,
                                 depth_threshold,
                                 snv_only_flag,
                             );
                             if variant.is_some() {
-                                variant_list.push(variant.unwrap());
+                                variant_list.push(variant.ok_or("No variant")?);
                             }
                             variant_count += 1;
                         }
@@ -149,8 +154,9 @@ pub fn build_variant_list(
                         info!("Skipping {} with no vcf records", region);
                     }
                 }
+                Ok(0)
             } else {
-                panic!("Missing tabix file {}", vcf_file_idx_fn);
+                Err(format!("Missing tabix file {}", vcf_file_idx_fn))
             }
         }
         (true, false) => {
@@ -159,10 +165,12 @@ pub fn build_variant_list(
                 .map(bgzf::Reader::new)
                 .map(BufReader::new)
                 .map(vcf::Reader::new)
-                .unwrap();
+                .map_err(|_e| "Bad reader".to_string())?;
 
-            let raw_header = reader.read_header().expect("Error reading header");
-            let header = raw_header.parse().unwrap();
+            let raw_header = reader.read_header().map_err(|e| e.to_string())?;
+            let header = raw_header
+                .parse()
+                .map_err(|_| "Cannot parse header properly".to_string())?;
             let mut variants = Vec::from_iter(
                 reader
                     .records(&header)
@@ -170,6 +178,7 @@ pub fn build_variant_list(
                     .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag)),
             );
             variant_list.append(&mut variants);
+            Ok(0)
         }
         _ => {
             if is_fetch {
@@ -179,10 +188,12 @@ pub fn build_variant_list(
             let mut reader = File::open(vcf_file)
                 .map(BufReader::new)
                 .map(vcf::Reader::new)
-                .unwrap();
+                .map_err(|e| e.to_string())?;
 
-            let raw_header = reader.read_header().expect("Error reading header");
-            let header = raw_header.parse().unwrap();
+            let raw_header = reader.read_header().map_err(|e| e.to_string())?;
+            let header = raw_header
+                .parse()
+                .map_err(|_| "Cannot parse header properly".to_string())?;
             let mut variants = Vec::from_iter(
                 reader
                     .records(&header)
@@ -190,6 +201,7 @@ pub fn build_variant_list(
                     .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag)),
             );
             variant_list.append(&mut variants);
+            Ok(0)
         }
     };
 
@@ -198,7 +210,10 @@ pub fn build_variant_list(
         variant_list.len(),
         vcf_file
     );
-    return variant_list;
+    match exit_code {
+        Ok(_) => Ok(variant_list),
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(test)]
@@ -219,7 +234,8 @@ mod tests {
         #[case] regions: Vec<String>,
     ) {
         let vcf_file = "data/test.vcf";
-        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
+        let variant_list =
+            build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions).unwrap();
         assert_eq!(variant_list.len(), expected_number_variants);
     }
 
@@ -239,7 +255,8 @@ mod tests {
         #[case] regions: Vec<String>,
     ) {
         let vcf_file = "data/test.vcf.gz";
-        let variant_list = build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions);
+        let variant_list =
+            build_variant_list(&vcf_file, snv_only_flag, depth_threshold, regions).unwrap();
         assert_eq!(variant_list.len(), expected_number_variants);
     }
 
@@ -251,7 +268,8 @@ mod tests {
             true,
             10,
             vec![String::from("1:38145491-38145540")],
-        );
+        )
+        .unwrap();
     }
 
     #[rstest]
@@ -294,7 +312,7 @@ mod tests {
         #[case] variant_type: VariantType,
     ) {
         let vcf_file = "data/test.vcf";
-        let variant_list = build_variant_list(&vcf_file, false, 0, vec![]);
+        let variant_list = build_variant_list(&vcf_file, false, 0, vec![]).unwrap();
         let record = &variant_list[record_idx];
         assert_eq!(record.zygosity, zygosity);
         assert_eq!(record.alt_depth, alt_depth);

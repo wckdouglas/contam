@@ -68,7 +68,7 @@ pub fn run(
         _ => vec![],
     };
     let variant_vector: Vec<VariantPosition> =
-        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold, regions);
+        build_variant_list(&*vcf_file, snv_only_flag, depth_threshold, regions)?;
 
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result

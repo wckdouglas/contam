@@ -72,11 +72,11 @@ impl VariantPosition {
         }
         Ok(Self {
             contig: contig.to_string(),
-            position: position,
-            total_read_depth: total_read_depth,
-            alt_depth: alt_depth,
-            variant_type: variant_type,
-            zygosity: zygosity,
+            position,
+            total_read_depth,
+            alt_depth,
+            variant_type,
+            zygosity,
         })
     }
 }
