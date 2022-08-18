@@ -1,4 +1,5 @@
 use crate::model::{VariantPosition, VariantType, Zygosity};
+use rayon::prelude::*;
 use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
 
@@ -137,12 +138,13 @@ pub fn calculate_contam_hypothesis(
     }
 
     let log_prob_sum: f64 = variant_list
-        .iter()
+        .par_iter()
         .map(|variant_position| {
             calaulate_loglik_for_variant_position(
                 variant_position,
                 hypothetical_contamination_level,
-            )?
+            )
+            .unwrap()
         })
         .sum::<f64>();
     Ok(log_prob_sum)
