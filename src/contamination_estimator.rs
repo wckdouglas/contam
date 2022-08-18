@@ -20,20 +20,19 @@ use std::vec::Vec;
 /// let variant = VariantPosition::new(
 ///     "chr1", 1, 50, 25, VariantType::SNV, Zygosity::HETEROZYGOUS
 /// ).unwrap();
-/// let log_prob = calc_loglik_for_hypothetical_contam_level(&variant, 0.2);
+/// let log_prob = calc_loglik_for_hypothetical_contam_level(&variant, 0.2).unwrap();
 /// assert_approx_eq!(-13.343980087895773, log_prob);
 /// ```
 pub fn calc_loglik_for_hypothetical_contam_level(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
-) -> f64 {
+) -> Result<f64, String> {
     let binom = Binomial::new(
         hypothetical_contamination_level,
         variant_position.total_read_depth as u64,
     )
-    .unwrap();
-    let log_prob = binom.ln_pmf(variant_position.alt_depth as u64);
-    log_prob
+    .map_err(|e| e.to_string())?;
+    Ok(binom.ln_pmf(variant_position.alt_depth as u64))
 }
 
 /// Return log probability of a heterozygous variant for a given contamination level
@@ -53,7 +52,7 @@ pub fn calc_loglik_for_hypothetical_contam_level(
 fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
-) -> f64 {
+) -> Result<f64, String> {
     let possibe_expected_alt_fraction: Vec<f64> = vec![
         (1.0 - hypothetical_contamination_level) / 2.0, // low AF in HET ALT because of contam doesn't look like ref or alt
         (1.0 - hypothetical_contamination_level), // this is when a HOM being called as HET because of contam
@@ -64,11 +63,11 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     let max_log_prob = possibe_expected_alt_fraction
         .into_iter()
         .map(|contam_level| {
-            calc_loglik_for_hypothetical_contam_level(variant_position, contam_level)
+            calc_loglik_for_hypothetical_contam_level(variant_position, contam_level).unwrap()
         })
         .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap();
-    max_log_prob
+        .ok_or("MAX is not found in the loglik calculation")?;
+    Ok(max_log_prob)
 }
 
 /// Helper function to calculate the log probability of a given
@@ -85,21 +84,21 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
 fn calaulate_loglik_for_variant_position(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
-) -> f64 {
+) -> Result<f64, String> {
     let mut log_prob: f64 = 0.0;
     if variant_position.variant_type == VariantType::SNV {
         log_prob = match variant_position.zygosity {
             Zygosity::HOMOZYGOUS => calc_loglik_for_hypothetical_contam_level(
                 variant_position,
                 1.0 - hypothetical_contamination_level,
-            ),
+            )?,
             Zygosity::HETEROZYGOUS => calc_loglik_for_hypothetical_contam_level_heterozygous(
                 variant_position,
                 hypothetical_contamination_level,
-            ),
+            )?,
         }
     }
-    log_prob
+    Ok(log_prob)
 }
 
 /// Given a list of variant position and a hypothetical contamination level
@@ -126,15 +125,15 @@ fn calaulate_loglik_for_variant_position(
 ///     VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS).unwrap(),
 ///     VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS).unwrap(),
 /// ];
-/// let log_prob: f64 = calculate_contam_hypothesis(&variant_list, contam_level);
+/// let log_prob: f64 = calculate_contam_hypothesis(&variant_list, contam_level).unwrap();
 /// assert_approx_eq!(log_prob, expected_log_prob)
 /// ```
 pub fn calculate_contam_hypothesis(
     variant_list: &Vec<VariantPosition>,
     hypothetical_contamination_level: f64,
-) -> f64 {
+) -> Result<f64, String> {
     if !(0.0..1.0).contains(&hypothetical_contamination_level) {
-        panic!("Contamination level must be > 0 and <= 1");
+        return Err("Contamination level must be > 0 and <= 1".to_string());
     }
 
     let log_prob_sum: f64 = variant_list
@@ -143,10 +142,10 @@ pub fn calculate_contam_hypothesis(
             calaulate_loglik_for_variant_position(
                 variant_position,
                 hypothetical_contamination_level,
-            )
+            )?
         })
         .sum::<f64>();
-    log_prob_sum
+    Ok(log_prob_sum)
 }
 
 #[cfg(test)]
@@ -186,7 +185,7 @@ mod tests {
         )
         .unwrap();
         let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level);
-        assert_approx_eq!(p, expected_out);
+        assert_approx_eq!(p.unwrap(), expected_out);
     }
 
     #[rstest]
@@ -200,6 +199,6 @@ mod tests {
             VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS).unwrap(),
         ];
         let log_prob = calculate_contam_hypothesis(&variant_list, contam_level);
-        assert_approx_eq!(log_prob, expected_log_prob)
+        assert_approx_eq!(log_prob.unwrap(), expected_log_prob)
     }
 }

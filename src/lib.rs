@@ -76,7 +76,7 @@ pub fn run(
         // loop over the hypothetical contamination level
         // and calculate the log likelihood
         let log_prob: f64 =
-            calculate_contam_hypothesis(&variant_vector, hypothetical_contamination_level);
+            calculate_contam_hypothesis(&variant_vector, hypothetical_contamination_level)?;
 
         // store them into a result object
         let output: ContamProbResult = ContamProbResult {
