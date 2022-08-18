@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT"
 description = "Estimating contamination level in diploid DNA seuqencing libraries"
 exclude=["diploid_contam", "tests", "img", "notebooks", "docs"]
+repository = "https://github.com/wckdouglas/diploid-contam"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

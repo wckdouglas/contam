@@ -1,6 +1,6 @@
 # Diploid-contam #
 
-[![poetry CI](https://github.com/wckdouglas/contam/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wckdouglas/contam/actions/workflows/ci.yml)
+[![poetry CI](https://github.com/wckdouglas/contam/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wckdouglas/contam/actions/workflows/ci.yml) [![crates.io](https://img.shields.io/crates/v/diploid-contam-estimator.svg)](https://crates.io/crates/diploid-contam-estimator)
 
 
 A module to estimate contamination level from **diploid** variant calls. This is heavily inspired by [Dcon](https://github.com/liguowang/dcon/blob/master/lib/DconModule/utils.py).
