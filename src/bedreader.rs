@@ -25,23 +25,24 @@ use noodles_bed as bed;
 /// assert_eq!(region_list.len(), 4);
 /// assert_eq!(region_list[0], "X:2-5");
 /// ```
-pub fn read_bed(bed_file: &str) -> Vec<String> {
+pub fn read_bed(bed_file: &str) -> Result<Vec<String>, String> {
     let mut region_list: Vec<String> = vec![];
     let mut reader = File::open(bed_file)
         .map(BufReader::new)
         .map(bed::Reader::new)
-        .expect("Error reading bed file");
+        .map_err(|e| e.to_string())?;
 
     for record in reader.records::<3>() {
-        let bed_record = record.unwrap();
-        let start: usize = usize::try_from(bed_record.start_position()).unwrap() - 1;
-        let stop: usize = usize::try_from(bed_record.end_position()).unwrap();
+        let bed_record = record.map_err(|e| e.to_string())?;
+        let start: usize =
+            usize::try_from(bed_record.start_position()).map_err(|e| e.to_string())? - 1;
+        let stop: usize = usize::try_from(bed_record.end_position()).map_err(|e| e.to_string())?;
         let contig = bed_record.reference_sequence_name();
         let region_string: String = format!("{}:{}-{}", contig, start, stop);
         region_list.push(region_string);
     }
     info!("Collected {} loci from {}", region_list.len(), bed_file);
-    return region_list;
+    Ok(region_list)
 }
 
 #[cfg(test)]
@@ -51,7 +52,7 @@ mod tests {
     #[test]
     fn test_build_variant_list() {
         let bed_file = "data/test.bed";
-        let region_list = read_bed(bed_file);
+        let region_list = read_bed(bed_file).unwrap();
         assert_eq!(region_list.len(), 4);
         assert_eq!(region_list[0], "X:2-5");
         assert_eq!(region_list[1], "X:3-7");
