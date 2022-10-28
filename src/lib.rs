@@ -182,7 +182,8 @@ mod tests {
     #[case(false, true, 1000, None, None, 0.046, None)]
     #[case(false, true, 10, None, None, 0.046, None)]
     #[case(false, true, 10, None, None, 0.046, None)]
-    #[case(false, false, 1100, None, None, 0.043, None)]
+    #[case(false, false, 1100, None, None, 0.399, None)]
+    #[case(false, true, 1100, None, None, 0.043, None)]
     #[case(true, true, 200, None, None, 0.001, Some("data/test.bed"))] // fetch region from bed
     #[case(true, true, 200, None, None, 0.046, None)] // fetch region from bed
     fn test_run(

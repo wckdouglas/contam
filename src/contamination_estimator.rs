@@ -1,4 +1,4 @@
-use crate::model::{Hypothesis, VariantPosition, VariantType, Zygosity};
+use crate::model::{Hypothesis, VariantPosition, Zygosity};
 use rayon::prelude::*;
 use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
@@ -170,12 +170,12 @@ pub fn calculate_contam_hypothesis(
 
     let log_prob_list = variant_list
         .par_iter_mut()
-        .filter(|v| v.variant_type == VariantType::SNV )
         .map(|variant_position| {
             let hyp = calaulate_loglik_for_variant_position(
                 variant_position,
                 hypothetical_contamination_level,
             )?;
+            variant_position.set_contamination_label(hyp.label);
             hyp.loglik.ok_or("loglik not calculated".to_string())
         });
     let log_prob_sum = log_prob_list.sum::<Result<f64, String>>()?;

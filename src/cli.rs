@@ -48,7 +48,6 @@ pub fn parse_args() -> ArgMatches {
         )
         .arg(
             Arg::with_name("debug_variant_json")
-                .short('v')
                 .long("debug-variant-json")
                 .takes_value(true)
                 .required(false)
