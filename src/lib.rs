@@ -104,6 +104,8 @@ pub fn run(
     }
 
     if variant_json.is_some() {
+        // recalculate loglik
+        calculate_contam_hypothesis(&mut variant_vector, best_guess_contam_level)?;
         // write variant json file
         let json_string =
             serde_json::to_string_pretty(&variant_vector).map_err(|e| e.to_string())?;
