@@ -139,7 +139,7 @@ mod tests {
             "chrX",
             1,
             depth as usize,
-            101,
+            0,
             VariantType::SNV,
             Zygosity::HETEROZYGOUS,
         )
@@ -147,9 +147,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "and positive")]
     fn test_variant_position() {
-        let depth: i32 = 1;
+        let depth: i32 = 200;
         let mut vp = VariantPosition::new(
             "chrX",
             1,

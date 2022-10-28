@@ -188,6 +188,7 @@ mod tests {
     use super::*;
     use assert_approx_eq::assert_approx_eq;
     use rstest::*;
+    use crate::model::VariantType;
 
     #[rstest]
     #[case(50, 25, 0.2, -3.20735238519, Zygosity::HETEROZYGOUS)]
