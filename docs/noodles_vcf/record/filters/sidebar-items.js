@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Filters","VCF record filters (`FILTER`)."],["ParseError","An error returned when a raw VCF filter fails to parse."],["TryFromIteratorError","An error returned when raw VCF filters fail to convert."]]};

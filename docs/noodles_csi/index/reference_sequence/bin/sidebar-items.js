@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Bin","A CSI reference sequence bin."],["Chunk","An index reference sequence bin chunk."]]};

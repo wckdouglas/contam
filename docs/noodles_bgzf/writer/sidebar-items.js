@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Builder","A BGZF writer builder."],["CompressionLevel","A DEFLATE compression level."],["Writer","A BZGF writer."]]};

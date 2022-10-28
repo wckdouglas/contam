@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["VariantType","variant types in the vcf file"],["Zygosity","zygostiy of a variant"]],"struct":[["ContamProbResult","A struct to hold the contamination estimation result"],["Hypothesis",""],["VariantPosition","data structure for  a variant position"]]};

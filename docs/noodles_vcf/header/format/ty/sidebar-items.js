@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Type","A VCF header genotype format field value type."]],"struct":[["ParseError","An error returned when a VCF header genotype format field type fails to parse."]]};

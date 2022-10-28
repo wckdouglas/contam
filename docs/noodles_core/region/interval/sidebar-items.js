@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["ParseError","An error returned when an interval fails to parse."]],"struct":[["Interval","An interval."]]};

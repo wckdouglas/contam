@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["ParseError","An error returned when a raw BED record color fails to parse."]],"struct":[["Color","A BED record color."]]};

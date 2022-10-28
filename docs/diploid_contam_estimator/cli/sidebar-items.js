@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":[["PROGRAM_DESC",""],["PROGRAM_NAME",""]],"fn":[["parse_args","arg parser to get input from command line"]]};

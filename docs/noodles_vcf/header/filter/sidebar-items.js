@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to a filter header record."]],"struct":[["Filter","A VCF header filter record (`FILTER`)."]]};

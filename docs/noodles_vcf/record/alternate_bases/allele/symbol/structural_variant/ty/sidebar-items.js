@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["ParseError","An error returned when a raw VCF record a structural variant type of an alternate base allele symbol fails to parse."],["Type","A VCF alternate bases allele structural variant symbol type."]]};

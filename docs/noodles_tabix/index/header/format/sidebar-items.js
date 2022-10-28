@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Format","A tabix index format."],["TryFromIntError","An error returned when a raw format fails to convert."]],"mod":[["coordinate_system","Tabix index format coordinate system."]]};

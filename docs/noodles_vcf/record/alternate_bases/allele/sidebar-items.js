@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Allele","A VCF alternate bases allele."],["ParseError","An error returned when a raw alternate bases allele fails to parse."]],"mod":[["symbol","VCF record alternate bases allele symbol and structural variant."]]};

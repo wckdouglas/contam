@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to a meta header record."]],"struct":[["Meta","A VCF header meta record (`META`)."]]};

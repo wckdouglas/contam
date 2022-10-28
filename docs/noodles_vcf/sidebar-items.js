@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["header","VCF header and fields."],["reader","VCF reader and iterators."],["record","VCF record and fields."]],"struct":[["Writer","A VCF writer."]]};

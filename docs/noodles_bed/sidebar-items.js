@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["record","BED record and fields."]],"struct":[["Reader","A BED reader."],["Writer","A BED writer."]]};

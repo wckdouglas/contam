@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to an alternative allele header record."]],"struct":[["AlternativeAllele","A VCF header symbolic alternate allele record (`ALT`)."]]};

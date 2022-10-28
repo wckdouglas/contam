@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["format","Tabix index header format and coordinate system."]],"struct":[["Builder","A tabix index header builder."],["Header","A tabix index header."]],"type":[["ReferenceSequenceNames","An ordered set of reference sequence names."]]};

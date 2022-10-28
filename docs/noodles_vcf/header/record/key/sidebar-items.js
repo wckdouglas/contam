@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Key","A VCF header record key."],["ParseError","An error returned when a raw VCF header record kind fails to parse."]]};

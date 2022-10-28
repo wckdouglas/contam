@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["bin","CSI reference sequence bin and fields."]],"struct":[["Metadata","Index reference sequence metadata."],["ReferenceSequence","A CSI reference sequence."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["builder","Tabix index builder."],["header","Tabix index header."],["reference_sequence","Tabix index reference sequence and fields."]],"struct":[["Index","A tabix index."],["Indexer","A tabix indexer."]]};

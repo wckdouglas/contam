@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["ParseError","An error returned when a raw VCF record genotype field value fails to parse."],["Value","A VCF record genotype field value."]],"mod":[["genotype","VCF record genotype value."]]};

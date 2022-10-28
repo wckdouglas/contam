@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Base","A VCF record reference base."]],"struct":[["TryFromCharError","An error returned when a character fails to convert to a base."]]};

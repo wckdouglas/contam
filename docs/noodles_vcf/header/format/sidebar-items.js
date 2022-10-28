@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to a genotype format header record."]],"mod":[["key","VCF header format key."],["ty","VCF header genotype format field value type."]],"struct":[["Format","A VCF header genotype format record (`FORMAT`)."]]};
