@@ -3,7 +3,7 @@ use rayon::prelude::*;
 use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
 
-const HYPOTHESES: [&'static str; 6] = [
+const HYPOTHESES: [&str; 6] = [
     "homozygous",
     "contam is not ref nor alt",
     "contam is called as alt",
@@ -176,7 +176,8 @@ pub fn calculate_contam_hypothesis(
         )?;
         // transferring the contamination label to the VariantPosition object
         variant_position.set_contamination_label(hyp.label);
-        hyp.loglik.ok_or("loglik not calculated".to_string())
+        hyp.loglik
+            .ok_or_else(|| "loglik not calculated".to_string())
     });
     let log_prob_sum = log_prob_list.sum::<Result<f64, String>>()?;
     Ok(log_prob_sum)

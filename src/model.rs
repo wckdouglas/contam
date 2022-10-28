@@ -30,7 +30,7 @@ pub struct Hypothesis {
 
 impl Hypothesis {
     pub fn new(label: String, variant_fraction: f64) -> Result<Hypothesis, String> {
-        if variant_fraction >= 0.0 && variant_fraction <= 1.0 {
+        if (0.0..=1.0).contains(&variant_fraction) {
             Ok(Self {
                 label,
                 variant_fraction,
