@@ -21,7 +21,7 @@ pub enum Zygosity {
     HETEROZYGOUS,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Hypothesis {
     pub label: String,
     pub variant_fraction: f64,

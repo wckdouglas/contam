@@ -53,7 +53,7 @@ pub fn calc_loglik_for_hypothetical_contam_level(
 fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
-) -> Result<f64, String> {
+) -> Result<Hypothesis, String> {
     let mut contamination_hypotheses: Vec<Hypothesis> = vec![
         Hypothesis::new (
             "contam is not ref/alt".to_string(),
@@ -90,8 +90,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
         .max_by(|a, b| a.loglik.partial_cmp(&b.loglik).unwrap())
         .ok_or("MAX is not found in the loglik calculation")?;
     
-    let max_log_prob = best_hypothesis.loglik.ok_or("no loglik calculated")?;
-    Ok(max_log_prob)
+    Ok(best_hypothesis.clone())
 }
 
 /// Helper function to calculate the log probability of a given
@@ -109,20 +108,25 @@ fn calaulate_loglik_for_variant_position(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
 ) -> Result<f64, String> {
-    let mut log_prob: f64 = 0.0;
     if variant_position.variant_type == VariantType::SNV {
-        log_prob = match variant_position.zygosity {
+        // only calculate for SNV, because indel may have non-balanced capture efficiency
+        // during sequencing
+        match variant_position.zygosity {
             Zygosity::HOMOZYGOUS => calc_loglik_for_hypothetical_contam_level(
                 variant_position,
                 1.0 - hypothetical_contamination_level,
-            )?,
-            Zygosity::HETEROZYGOUS => calc_loglik_for_hypothetical_contam_level_heterozygous(
-                variant_position,
-                hypothetical_contamination_level,
-            )?,
+            ),
+            Zygosity::HETEROZYGOUS => {
+                let best_hypothesis = calc_loglik_for_hypothetical_contam_level_heterozygous(
+                    variant_position,
+                    hypothetical_contamination_level,
+                )?;
+                best_hypothesis.loglik.ok_or("No loglik is calculated".to_string())
+            }
         }
+    } else{
+    Ok(0.0)
     }
-    Ok(log_prob)
 }
 
 /// Given a list of variant position and a hypothetical contamination level
