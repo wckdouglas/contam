@@ -35,6 +35,10 @@ pub struct Hypothesis {
 impl Hypothesis {
     /// Create a Hypothesis object
     ///
+    /// # Arguments
+    /// * `label`: the name of the hypothesis
+    /// * `variant_fraction`: the hypothesized contamination level
+    ///
     /// Example::
     ///
     /// ```
@@ -57,6 +61,9 @@ impl Hypothesis {
     }
 
     /// Adding the log likelihood value after evaluation
+    ///
+    /// # Arguments
+    /// * `loglik`: log likelihood value
     ///
     /// Example::
     ///
@@ -104,6 +111,14 @@ pub struct VariantPosition {
 
 impl VariantPosition {
     /// Create a VariantPosition object
+    ///
+    /// # Arguments
+    /// * `contig`: chromosome name
+    /// * `position`: genomic position on the chromosome
+    /// * `total_read_depth`: total depth at the position
+    /// * `alt_depth`: total read that showed alt alleles
+    /// * `variant_type`: is it a indel or snv?
+    /// * `zygosity`: the zygosity of the variant
     ///
     /// Example::
     ///
