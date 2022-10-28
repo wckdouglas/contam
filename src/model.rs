@@ -21,6 +21,31 @@ pub enum Zygosity {
     HETEROZYGOUS,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Hypothesis {
+    pub label: String,
+    pub variant_fraction: f64,
+    pub loglik: Option<f64>,
+}
+
+impl Hypothesis {
+    pub fn new(label: String, variant_fraction: f64) -> Result<Hypothesis, String> {
+        if variant_fraction >= 0.0 && variant_fraction <= 1.0 {
+            Ok(Self {
+                label,
+                variant_fraction,
+                loglik: None,
+            })
+        } else {
+            Err("variant_fraction must be between 0 and 1".to_string())
+        }
+    }
+
+    pub fn set_loglik (&mut self, loglik: f64){
+        self.loglik = Some(loglik);
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 /// A struct to hold the contamination estimation result
 pub struct ContamProbResult {
@@ -45,6 +70,8 @@ pub struct VariantPosition {
     pub variant_type: VariantType,
     /// the zygosity of the variant
     pub zygosity: Zygosity,
+    /// the best hypothesis of the contamination source
+    pub contamination_label: Option<String>
 }
 
 impl VariantPosition {
@@ -77,7 +104,12 @@ impl VariantPosition {
             alt_depth,
             variant_type,
             zygosity,
+            contamination_label: None
         })
+    }
+
+    pub fn set_contamination_label(&mut self, contamination_label: String) {
+        self.contamination_label = Some(contamination_label);
     }
 }
 
@@ -107,10 +139,37 @@ mod tests {
             "chrX",
             1,
             depth as usize,
+            0,
+            VariantType::SNV,
+            Zygosity::HETEROZYGOUS,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn test_variant_position() {
+        let depth: i32 = 200;
+        let mut vp = VariantPosition::new(
+            "chrX",
+            1,
+            depth as usize,
             101,
             VariantType::SNV,
             Zygosity::HETEROZYGOUS,
         )
         .unwrap();
+        let contam_label = "contam".to_string();
+        let _ = &vp.set_contamination_label(contam_label.clone());
+        assert_eq!(vp.contamination_label.unwrap(), contam_label);
+    }
+
+    #[test]
+    fn test_hypothesis(){
+        let mut hyp = Hypothesis::new(
+            "test_hyp".to_string(),
+            0.1,
+        ).unwrap();
+        hyp.set_loglik(0.2);
+        assert_eq!(hyp.loglik, Some(0.2));
     }
 }

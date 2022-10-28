@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Position","A 1-based position."]],"trait":[["SequenceIndex","A 1-based index for sequences."]],"type":[["ParseError","An error returned when a position fails to parse."],["TryFromIntError","An error returned when a raw position fails to convert."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Position","A 1-based position."]],"trait":[["SequenceIndex","A 1-based index for sequences."]],"type":[["ParseError","An error returned when a position fails to parse."],["TryFromIntError","An error returned when a raw position fails to convert."]]};

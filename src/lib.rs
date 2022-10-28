@@ -67,7 +67,7 @@ pub fn run(
         Some(bed) => read_bed(bed)?,
         _ => vec![],
     };
-    let variant_vector: Vec<VariantPosition> =
+    let mut variant_vector: Vec<VariantPosition> =
         build_variant_list(vcf_file, snv_only_flag, depth_threshold, regions)?;
 
     // using variants as input to estimate contamination
@@ -78,7 +78,7 @@ pub fn run(
         // loop over the hypothetical contamination level
         // and calculate the log likelihood
         let log_prob: f64 =
-            calculate_contam_hypothesis(&variant_vector, hypothetical_contamination_level)?;
+            calculate_contam_hypothesis(&mut variant_vector, hypothetical_contamination_level)?;
 
         // store them into a result object
         let output: ContamProbResult = ContamProbResult {
@@ -182,7 +182,8 @@ mod tests {
     #[case(false, true, 1000, None, None, 0.046, None)]
     #[case(false, true, 10, None, None, 0.046, None)]
     #[case(false, true, 10, None, None, 0.046, None)]
-    #[case(false, false, 1100, None, None, 0.043, None)]
+    #[case(false, false, 1100, None, None, 0.399, None)]
+    #[case(false, true, 1100, None, None, 0.043, None)]
     #[case(true, true, 200, None, None, 0.001, Some("data/test.bed"))] // fetch region from bed
     #[case(true, true, 200, None, None, 0.046, None)] // fetch region from bed
     fn test_run(

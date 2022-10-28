@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ParseError","An error returned when a raw VCF header record fails to parse."],["Value","A VCF header record value."]],"mod":[["key","VCF header record key."]],"struct":[["Record","A generic VCF header record."]]});
+window.SIDEBAR_ITEMS = {"enum":[["ParseError","An error returned when a raw VCF header record fails to parse."],["Value","A VCF header record value."]],"mod":[["key","VCF header record key."]],"struct":[["Record","A generic VCF header record."]]};

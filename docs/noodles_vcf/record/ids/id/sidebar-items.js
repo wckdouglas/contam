@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ParseError","An error returned when a raw VCF record ID fails to parse."]],"struct":[["Id","A VCF record ID."]]});
+window.SIDEBAR_ITEMS = {"enum":[["ParseError","An error returned when a raw VCF record ID fails to parse."]],"struct":[["Id","A VCF record ID."]]};

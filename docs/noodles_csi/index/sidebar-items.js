@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["reference_sequence","Coordinate-sorted index (CSI) reference sequence and fields."]],"struct":[["Builder","A coordinate-sorted index (CSI) builder."],["Index","A coordinate-sorted index (CSI)."]]});
+window.SIDEBAR_ITEMS = {"mod":[["reference_sequence","Coordinate-sorted index (CSI) reference sequence and fields."]],"struct":[["Builder","A coordinate-sorted index (CSI) builder."],["Index","A coordinate-sorted index (CSI)."]]};

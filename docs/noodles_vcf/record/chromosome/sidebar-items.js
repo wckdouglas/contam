@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Chromosome","A VCF record chromosome (`CHROM`)."],["ParseError","An error returned when a raw VCF record chromosome fails to parse."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Chromosome","A VCF record chromosome (`CHROM`)."],["ParseError","An error returned when a raw VCF record chromosome fails to parse."]]};

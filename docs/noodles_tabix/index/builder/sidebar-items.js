@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Builder","A tabix index builder."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Builder","A tabix index builder."]]};
