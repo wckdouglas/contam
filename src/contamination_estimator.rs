@@ -55,7 +55,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     hypothetical_contamination_level: f64,
 ) -> Result<Hypothesis, String> {
     let mut contamination_hypotheses: Vec<Hypothesis> = vec![
-        Hypothesis::new (
+        Hypothesis::new(
             "contam is not ref/alt".to_string(),
             (1.0 - hypothetical_contamination_level) / 2.0,
         )?, // low AF in HET ALT because of contam doesn't look like ref or alt
@@ -63,15 +63,15 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
             "contam called as alt".to_string(),
             1.0 - hypothetical_contamination_level,
         )?, // this is when a HOM being called as HET because of contam
-        Hypothesis::new (
+        Hypothesis::new(
             "contam looks like het-alt at hom-alt position".to_string(),
             0.5 + hypothetical_contamination_level,
         )?, // this is when contam looks like ALT
-        Hypothesis::new (
+        Hypothesis::new(
             "contam looks like ref".to_string(),
             0.5 - hypothetical_contamination_level,
         )?, // this is when contam looks like REF
-        Hypothesis::new (
+        Hypothesis::new(
             "contam looks like het-alt at hom-ref position".to_string(),
             hypothetical_contamination_level,
         )?, // this is when the contam is being called as het
@@ -89,7 +89,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
         })
         .max_by(|a, b| a.loglik.partial_cmp(&b.loglik).unwrap())
         .ok_or("MAX is not found in the loglik calculation")?;
-    
+
     Ok(best_hypothesis.clone())
 }
 
@@ -107,25 +107,29 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
 fn calaulate_loglik_for_variant_position(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
-) -> Result<f64, String> {
-    if variant_position.variant_type == VariantType::SNV {
-        // only calculate for SNV, because indel may have non-balanced capture efficiency
-        // during sequencing
-        match variant_position.zygosity {
-            Zygosity::HOMOZYGOUS => calc_loglik_for_hypothetical_contam_level(
+) -> Result<Hypothesis, String> {
+    match variant_position.zygosity {
+        Zygosity::HOMOZYGOUS => {
+            let variant_fraction = 1.0 - hypothetical_contamination_level;
+            let loglik = calc_loglik_for_hypothetical_contam_level(
                 variant_position,
-                1.0 - hypothetical_contamination_level,
-            ),
-            Zygosity::HETEROZYGOUS => {
-                let best_hypothesis = calc_loglik_for_hypothetical_contam_level_heterozygous(
-                    variant_position,
-                    hypothetical_contamination_level,
-                )?;
-                best_hypothesis.loglik.ok_or("No loglik is calculated".to_string())
-            }
+                variant_fraction,
+            )?;
+
+            let mut best_hypothesis = Hypothesis::new(
+                "homozygous".to_string(),
+                variant_fraction,
+            )?;
+            best_hypothesis.set_loglik(loglik);
+            Ok(best_hypothesis.clone())
+        },
+        Zygosity::HETEROZYGOUS => {
+            let best_hypothesis = calc_loglik_for_hypothetical_contam_level_heterozygous(
+                variant_position,
+                hypothetical_contamination_level,
+            )?;
+            Ok(best_hypothesis)
         }
-    } else{
-    Ok(0.0)
     }
 }
 
@@ -164,16 +168,17 @@ pub fn calculate_contam_hypothesis(
         return Err("Contamination level must be > 0 and <= 1".to_string());
     }
 
-    let log_prob_sum: f64 = variant_list
+    let log_prob_list = variant_list
         .par_iter()
+        .filter(|v| v.variant_type == VariantType::SNV )
         .map(|variant_position| {
-            calaulate_loglik_for_variant_position(
+            let hyp = calaulate_loglik_for_variant_position(
                 variant_position,
                 hypothetical_contamination_level,
-            )
-            .unwrap()
-        })
-        .sum::<f64>();
+            )?;
+            hyp.loglik.ok_or("loglik not calculated".to_string())
+        });
+    let log_prob_sum = log_prob_list.sum::<Result<f64, String>>()?;
     Ok(log_prob_sum)
 }
 
@@ -213,8 +218,8 @@ mod tests {
             zygosity,
         )
         .unwrap();
-        let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level);
-        assert_approx_eq!(p.unwrap(), expected_out);
+        let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level).unwrap();
+        assert_approx_eq!(p.loglik.unwrap(), expected_out);
     }
 
     #[rstest]
