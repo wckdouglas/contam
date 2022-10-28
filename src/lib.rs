@@ -105,6 +105,7 @@ pub fn run(
 
     if variant_json.is_some() {
         // recalculate loglik
+        info!("Adding labels to the variant data json");
         calculate_contam_hypothesis(&mut variant_vector, best_guess_contam_level)?;
         // write variant json file
         let json_string =

@@ -41,7 +41,7 @@ impl Hypothesis {
         }
     }
 
-    pub fn set_loglik (&mut self, loglik: f64){
+    pub fn set_loglik(&mut self, loglik: f64) {
         self.loglik = Some(loglik);
     }
 }
@@ -71,7 +71,7 @@ pub struct VariantPosition {
     /// the zygosity of the variant
     pub zygosity: Zygosity,
     /// the best hypothesis of the contamination source
-    pub contamination_label: Option<String>
+    pub contamination_label: Option<String>,
 }
 
 impl VariantPosition {
@@ -104,7 +104,7 @@ impl VariantPosition {
             alt_depth,
             variant_type,
             zygosity,
-            contamination_label: None
+            contamination_label: None,
         })
     }
 
@@ -164,11 +164,8 @@ mod tests {
     }
 
     #[test]
-    fn test_hypothesis(){
-        let mut hyp = Hypothesis::new(
-            "test_hyp".to_string(),
-            0.1,
-        ).unwrap();
+    fn test_hypothesis() {
+        let mut hyp = Hypothesis::new("test_hyp".to_string(), 0.1).unwrap();
         hyp.set_loglik(0.2);
         assert_eq!(hyp.loglik, Some(0.2));
     }

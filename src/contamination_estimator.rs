@@ -12,7 +12,6 @@ const HYPOTHESES: [&'static str; 6] = [
     "contam looks like het-alt at hom-ref position",
 ];
 
-
 /// Calculate log probability of seeing a number of alt calls
 /// at some read depth for a given contamination level
 /// # Arguments
@@ -81,10 +80,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
             HYPOTHESES[4].to_string(),
             0.5 - hypothetical_contamination_level,
         )?, // this is when contam looks like REF
-        Hypothesis::new(
-            HYPOTHESES[5].to_string(),
-            hypothetical_contamination_level,
-        )?, // this is when the contam is being called as low vaf het
+        Hypothesis::new(HYPOTHESES[5].to_string(), hypothetical_contamination_level)?, // this is when the contam is being called as low vaf het
     ];
     let best_hypothesis = contamination_hypotheses
         .iter_mut()
@@ -121,18 +117,13 @@ fn calaulate_loglik_for_variant_position(
     match variant_position.zygosity {
         Zygosity::HOMOZYGOUS => {
             let variant_fraction = 1.0 - hypothetical_contamination_level;
-            let loglik = calc_loglik_for_hypothetical_contam_level(
-                variant_position,
-                variant_fraction,
-            )?;
+            let loglik =
+                calc_loglik_for_hypothetical_contam_level(variant_position, variant_fraction)?;
 
-            let mut best_hypothesis = Hypothesis::new(
-                HYPOTHESES[0].to_string(),
-                variant_fraction,
-            )?;
+            let mut best_hypothesis = Hypothesis::new(HYPOTHESES[0].to_string(), variant_fraction)?;
             best_hypothesis.set_loglik(loglik);
             Ok(best_hypothesis.clone())
-        },
+        }
         Zygosity::HETEROZYGOUS => {
             let best_hypothesis = calc_loglik_for_hypothetical_contam_level_heterozygous(
                 variant_position,
@@ -178,17 +169,15 @@ pub fn calculate_contam_hypothesis(
         return Err("Contamination level must be > 0 and <= 1".to_string());
     }
 
-    let log_prob_list = variant_list
-        .par_iter_mut()
-        .map(|variant_position| {
-            let hyp = calaulate_loglik_for_variant_position(
-                variant_position,
-                hypothetical_contamination_level,
-            )?;
-            // transferring the contamination label to the VariantPosition object
-            variant_position.set_contamination_label(hyp.label);
-            hyp.loglik.ok_or("loglik not calculated".to_string())
-        });
+    let log_prob_list = variant_list.par_iter_mut().map(|variant_position| {
+        let hyp = calaulate_loglik_for_variant_position(
+            variant_position,
+            hypothetical_contamination_level,
+        )?;
+        // transferring the contamination label to the VariantPosition object
+        variant_position.set_contamination_label(hyp.label);
+        hyp.loglik.ok_or("loglik not calculated".to_string())
+    });
     let log_prob_sum = log_prob_list.sum::<Result<f64, String>>()?;
     Ok(log_prob_sum)
 }
@@ -196,9 +185,9 @@ pub fn calculate_contam_hypothesis(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::VariantType;
     use assert_approx_eq::assert_approx_eq;
     use rstest::*;
-    use crate::model::VariantType;
 
     #[rstest]
     #[case(50, 25, 0.2, -3.20735238519, Zygosity::HETEROZYGOUS, HYPOTHESES[1].to_string())]
@@ -231,7 +220,8 @@ mod tests {
             zygosity,
         )
         .unwrap();
-        let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level).unwrap();
+        let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level)
+            .unwrap();
         assert_approx_eq!(p.loglik.unwrap(), expected_out);
         assert_eq!(p.label, label);
     }
