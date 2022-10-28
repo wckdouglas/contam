@@ -70,6 +70,8 @@ pub struct VariantPosition {
     pub variant_type: VariantType,
     /// the zygosity of the variant
     pub zygosity: Zygosity,
+    /// the best hypothesis of the contamination source
+    pub contamination_label: Option<String>
 }
 
 impl VariantPosition {
@@ -102,7 +104,12 @@ impl VariantPosition {
             alt_depth,
             variant_type,
             zygosity,
+            contamination_label: None
         })
+    }
+
+    pub fn set_contamination_label(&mut self, contamination_label: String) {
+        self.contamination_label = Some(contamination_label);
     }
 }
 
@@ -137,6 +144,24 @@ mod tests {
             Zygosity::HETEROZYGOUS,
         )
         .unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "and positive")]
+    fn test_variant_position() {
+        let depth: i32 = 1;
+        let mut vp = VariantPosition::new(
+            "chrX",
+            1,
+            depth as usize,
+            101,
+            VariantType::SNV,
+            Zygosity::HETEROZYGOUS,
+        )
+        .unwrap();
+        let contam_label = "contam".to_string();
+        let _ = &vp.set_contamination_label(contam_label.clone());
+        assert_eq!(vp.contamination_label.unwrap(), contam_label);
     }
 
     #[test]
