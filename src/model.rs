@@ -22,13 +22,28 @@ pub enum Zygosity {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+/// A struct to hold the contamination hypothesis
 pub struct Hypothesis {
+    /// labeling the hypothesis (e.g. homozygous, het-alt)
     pub label: String,
+    /// the expected variant allele fraction
     pub variant_fraction: f64,
+    /// the loglikelihood of the hypothesis calculated from the observed data
     pub loglik: Option<f64>,
 }
 
 impl Hypothesis {
+    /// Create a Hypothesis object
+    ///
+    /// Example::
+    ///
+    /// ```
+    /// use diploid_contam_estimator::model::{Hypothesis};
+    /// let hyp = Hypothesis::new(
+    ///     "homozygous".to_string(),
+    ///     0.1,
+    /// ).unwrap();
+    /// ```
     pub fn new(label: String, variant_fraction: f64) -> Result<Hypothesis, String> {
         if (0.0..=1.0).contains(&variant_fraction) {
             Ok(Self {
@@ -41,6 +56,19 @@ impl Hypothesis {
         }
     }
 
+    /// Adding the log likelihood value after evaluation
+    ///
+    /// Example::
+    ///
+    /// ```
+    /// use diploid_contam_estimator::model::{Hypothesis};
+    /// let mut hyp = Hypothesis::new(
+    ///     "homozygous".to_string(),
+    ///     0.1,
+    /// ).unwrap();
+    /// hyp.set_loglik(0.1);
+    /// assert_eq!(0.1, hyp.loglik.unwrap());
+    /// ```
     pub fn set_loglik(&mut self, loglik: f64) {
         self.loglik = Some(loglik);
     }
