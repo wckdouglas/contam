@@ -49,7 +49,7 @@ pub fn calc_loglik_for_hypothetical_contam_level(
 /// * `hypothetical_contamination_level`: hypothetical contamination level
 ///
 /// # Returns
-/// * maximum log probability of seeing the given alt depth (across all the tested hypotheses)
+/// * the best hypothesis with the maximum log probability of seeing the given alt depth (across all the tested hypotheses)
 fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
@@ -103,7 +103,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
 ///
 /// # Returns
 ///
-/// log probability of seeing the given variant alt coutn
+/// the best hypothesis with the highest log probability of seeing the given variant alt coutn
 fn calaulate_loglik_for_variant_position(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
@@ -175,6 +175,7 @@ pub fn calculate_contam_hypothesis(
                 variant_position,
                 hypothetical_contamination_level,
             )?;
+            // transferring the contamination label to the VariantPosition object
             variant_position.set_contamination_label(hyp.label);
             hyp.loglik.ok_or("loglik not calculated".to_string())
         });
