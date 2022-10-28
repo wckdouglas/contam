@@ -1,4 +1,4 @@
-use crate::model::{VariantPosition, VariantType, Zygosity};
+use crate::model::{VariantPosition, VariantType, Zygosity, Hypothesis};
 use rayon::prelude::*;
 use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
@@ -54,17 +54,32 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
 ) -> Result<f64, String> {
-    let possibe_expected_alt_fraction: Vec<f64> = vec![
-        (1.0 - hypothetical_contamination_level) / 2.0, // low AF in HET ALT because of contam doesn't look like ref or alt
-        (1.0 - hypothetical_contamination_level), // this is when a HOM being called as HET because of contam
-        (0.5 + hypothetical_contamination_level), // this is when contam looks like ALT
-        (0.5 - hypothetical_contamination_level), // this is when contam looks like REF
-        hypothetical_contamination_level,         // this is when the contam is being called as het
+    let contamination_hypotheses: Vec<Hypothesis> = vec![
+        Hypothesis{
+            label: "contam is not ref/alt".to_string(), 
+            variant_fraction: (1.0 - hypothetical_contamination_level) / 2.0
+        }, // low AF in HET ALT because of contam doesn't look like ref or alt
+        Hypothesis{
+            label: "contam called as alt".to_string(), 
+            variant_fraction: (1.0 - hypothetical_contamination_level)
+        }, // this is when a HOM being called as HET because of contam
+        Hypothesis{
+            label: "contam looks like het-alt at hom-alt position".to_string(), 
+            variant_fraction: (0.5 + hypothetical_contamination_level)
+        }, // this is when contam looks like ALT
+        Hypothesis{
+            label: "contam looks like ref".to_string(),
+            variant_fraction: (0.5 - hypothetical_contamination_level)
+        }, // this is when contam looks like REF
+        Hypothesis{
+            label: "contam looks like het-alt at hom-ref position".to_string(), 
+            variant_fraction: hypothetical_contamination_level
+        },         // this is when the contam is being called as het
     ];
-    let max_log_prob = possibe_expected_alt_fraction
+    let max_log_prob = contamination_hypotheses
         .into_iter()
-        .map(|contam_level| {
-            calc_loglik_for_hypothetical_contam_level(variant_position, contam_level).unwrap()
+        .map(|contam_hypothesis| {
+            calc_loglik_for_hypothetical_contam_level(variant_position, contam_hypothesis.variant_fraction).unwrap()
         })
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .ok_or("MAX is not found in the loglik calculation")?;

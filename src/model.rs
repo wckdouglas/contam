@@ -21,6 +21,11 @@ pub enum Zygosity {
     HETEROZYGOUS,
 }
 
+pub struct Hypothesis {
+    pub label: String,
+    pub variant_fraction: f64,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 /// A struct to hold the contamination estimation result
 pub struct ContamProbResult {
