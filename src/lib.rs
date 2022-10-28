@@ -88,10 +88,15 @@ pub fn run(
         // and put them in to a result array
         result_vector.push(output);
 
-        if best_guess.is_none() {
-            best_guess = Some(output);
-        } else if output.log_likelihood > best_guess.unwrap().log_likelihood {
-            best_guess = Some(output);
+        match best_guess {
+            None => {
+                best_guess = Some(output);
+            }
+            Some(bg) => {
+                if output.log_likelihood > bg.log_likelihood {
+                    best_guess = Some(output);
+                }
+            }
         }
     }
     let best_guess_contam_level = best_guess
