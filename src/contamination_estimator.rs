@@ -153,15 +153,15 @@ fn calaulate_loglik_for_variant_position(
 /// use diploid_contam_estimator::model::{VariantPosition, VariantType, Zygosity};
 /// let contam_level: f64 = 0.0;
 /// let expected_log_prob: f64 = -2.5308764039;
-/// let variant_list: Vec<VariantPosition> = vec![
+/// let mut variant_list: Vec<VariantPosition> = vec![
 ///     VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS).unwrap(),
 ///     VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS).unwrap(),
 /// ];
-/// let log_prob: f64 = calculate_contam_hypothesis(&variant_list, contam_level).unwrap();
+/// let log_prob: f64 = calculate_contam_hypothesis(&mut variant_list, contam_level).unwrap();
 /// assert_approx_eq!(log_prob, expected_log_prob)
 /// ```
 pub fn calculate_contam_hypothesis(
-    variant_list: &Vec<VariantPosition>,
+    variant_list: &mut Vec<VariantPosition>,
     hypothetical_contamination_level: f64,
 ) -> Result<f64, String> {
     if !(0.0..1.0).contains(&hypothetical_contamination_level) {
@@ -169,7 +169,7 @@ pub fn calculate_contam_hypothesis(
     }
 
     let log_prob_list = variant_list
-        .par_iter()
+        .par_iter_mut()
         .filter(|v| v.variant_type == VariantType::SNV )
         .map(|variant_position| {
             let hyp = calaulate_loglik_for_variant_position(
@@ -227,12 +227,12 @@ mod tests {
     #[case(0.1,  -13.569444762)]
     #[case(0.3,  -42.913904771)]
     fn test_calculate_contam_hypothesis(#[case] contam_level: f64, #[case] expected_log_prob: f64) {
-        let variant_list = vec![
+        let mut variant_list = vec![
             VariantPosition::new("X", 1, 100, 50, VariantType::SNV, Zygosity::HETEROZYGOUS)
                 .unwrap(),
             VariantPosition::new("X", 1, 100, 100, VariantType::SNV, Zygosity::HOMOZYGOUS).unwrap(),
         ];
-        let log_prob = calculate_contam_hypothesis(&variant_list, contam_level);
+        let log_prob = calculate_contam_hypothesis(&mut variant_list, contam_level);
         assert_approx_eq!(log_prob.unwrap(), expected_log_prob)
     }
 }
