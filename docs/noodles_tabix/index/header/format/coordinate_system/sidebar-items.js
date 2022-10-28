@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["CoordinateSystem","A tabix index format coordinate system."]],"struct":[["TryFromIntError","An error returned when a raw coordinate system fails to convert."]]});
+window.SIDEBAR_ITEMS = {"enum":[["CoordinateSystem","A tabix index format coordinate system."]],"struct":[["TryFromIntError","An error returned when a raw coordinate system fails to convert."]]};

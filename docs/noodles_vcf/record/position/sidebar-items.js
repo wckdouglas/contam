@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Position","A VCF record position."]],"type":[["ParseError","An error returned when a raw VCF record position fails to parse."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Position","A VCF record position."]],"type":[["ParseError","An error returned when a raw VCF record position fails to parse."]]};

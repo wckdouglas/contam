@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Bin","A tabix index reference sequence bin."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Bin","A tabix index reference sequence bin."]]};

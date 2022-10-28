@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ParseError","An error returned when a raw VCF record genotype value allele phasing fails to parse."],["Phasing","A VCF record genotype value allele phasing."]]});
+window.SIDEBAR_ITEMS = {"enum":[["ParseError","An error returned when a raw VCF record genotype value allele phasing fails to parse."],["Phasing","A VCF record genotype value allele phasing."]]};

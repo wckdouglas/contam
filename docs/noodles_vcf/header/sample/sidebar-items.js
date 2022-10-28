@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to a sample header record."]],"struct":[["Sample","A VCF header sample record (`SAMPLE`)."]]});
+window.SIDEBAR_ITEMS = {"enum":[["TryFromRecordError","An error returned when a generic VCF header record fails to convert to a sample header record."]],"struct":[["Sample","A VCF header sample record (`SAMPLE`)."]]};

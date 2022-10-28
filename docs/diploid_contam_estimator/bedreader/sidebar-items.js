@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["read_bed","Reading bed file and output a list of regions string (contig:start-end)"]]});
+window.SIDEBAR_ITEMS = {"fn":[["read_bed","Reading bed file and output a list of regions string (contig:start-end)"]]};

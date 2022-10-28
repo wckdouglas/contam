@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["build_variant_list","Colelcting variants from a vcf file"]]});
+window.SIDEBAR_ITEMS = {"fn":[["build_variant_list","Colelcting variants from a vcf file"],["filter_variants","Evaluate a vcf record and determine whether it should be collected for estimating contamination"]]};
