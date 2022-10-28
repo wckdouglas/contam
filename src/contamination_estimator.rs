@@ -3,6 +3,16 @@ use rayon::prelude::*;
 use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
 
+const HYPOTHESES: [&'static str; 6] = [
+    "homozygous",
+    "contam is not ref nor alt",
+    "contam is called as alt",
+    "contam looks like het-alt at hom-alt position",
+    "contam comes from a ref-allele",
+    "contam looks like het-alt at hom-ref position",
+];
+
+
 /// Calculate log probability of seeing a number of alt calls
 /// at some read depth for a given contamination level
 /// # Arguments
@@ -56,25 +66,25 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
 ) -> Result<Hypothesis, String> {
     let mut contamination_hypotheses: Vec<Hypothesis> = vec![
         Hypothesis::new(
-            "contam is not ref/alt".to_string(),
+            HYPOTHESES[1].to_string(),
             (1.0 - hypothetical_contamination_level) / 2.0,
         )?, // low AF in HET ALT because of contam doesn't look like ref or alt
         Hypothesis::new(
-            "contam called as alt".to_string(),
+            HYPOTHESES[2].to_string(),
             1.0 - hypothetical_contamination_level,
         )?, // this is when a HOM being called as HET because of contam
         Hypothesis::new(
-            "contam looks like het-alt at hom-alt position".to_string(),
+            HYPOTHESES[3].to_string(),
             0.5 + hypothetical_contamination_level,
         )?, // this is when contam looks like ALT
         Hypothesis::new(
-            "contam looks like ref".to_string(),
+            HYPOTHESES[4].to_string(),
             0.5 - hypothetical_contamination_level,
         )?, // this is when contam looks like REF
         Hypothesis::new(
-            "contam looks like het-alt at hom-ref position".to_string(),
+            HYPOTHESES[5].to_string(),
             hypothetical_contamination_level,
-        )?, // this is when the contam is being called as het
+        )?, // this is when the contam is being called as low vaf het
     ];
     let best_hypothesis = contamination_hypotheses
         .iter_mut()
@@ -117,7 +127,7 @@ fn calaulate_loglik_for_variant_position(
             )?;
 
             let mut best_hypothesis = Hypothesis::new(
-                "homozygous".to_string(),
+                HYPOTHESES[0].to_string(),
                 variant_fraction,
             )?;
             best_hypothesis.set_loglik(loglik);
@@ -191,14 +201,14 @@ mod tests {
     use crate::model::VariantType;
 
     #[rstest]
-    #[case(50, 25, 0.2, -3.20735238519, Zygosity::HETEROZYGOUS)]
-    #[case(50, 25, 0.3, -4.54456950896, Zygosity::HETEROZYGOUS)]
-    #[case(50, 10, 0.3, -1.96740651296, Zygosity::HETEROZYGOUS)]
-    #[case(50, 40, 0.1, -4.18755689231, Zygosity::HOMOZYGOUS)] // homozygous
-    #[case(50, 40, 0.1, -4.18755689231, Zygosity::HETEROZYGOUS)] // case 2 in HET
-    #[case(50, 30, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS)] // case 3 in HET
-    #[case(50, 20, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS)] // case 3 in HET
-    #[case(50, 5, 0.1,  -1.68780709970, Zygosity::HETEROZYGOUS)] // case 4 in HET
+    #[case(50, 25, 0.2, -3.20735238519, Zygosity::HETEROZYGOUS, HYPOTHESES[1].to_string())]
+    #[case(50, 25, 0.3, -4.54456950896, Zygosity::HETEROZYGOUS, HYPOTHESES[1].to_string())]
+    #[case(50, 10, 0.3, -1.96740651296, Zygosity::HETEROZYGOUS, HYPOTHESES[4].to_string())]
+    #[case(50, 40, 0.1, -4.18755689231, Zygosity::HOMOZYGOUS, HYPOTHESES[0].to_string())] // homozygous
+    #[case(50, 40, 0.1, -4.18755689231, Zygosity::HETEROZYGOUS, HYPOTHESES[2].to_string())] // case 2 in HET
+    #[case(50, 30, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS, HYPOTHESES[3].to_string())] // case 3 in HET
+    #[case(50, 20, 0.1, -2.16666920827, Zygosity::HETEROZYGOUS, HYPOTHESES[4].to_string())] // case 3 in HET
+    #[case(50, 5, 0.1,  -1.68780709970, Zygosity::HETEROZYGOUS, HYPOTHESES[5].to_string())] // case 4 in HET
     /// SUT:  calaulate_loglik_for_variant_position
     /// Collaborators:
     ///     - calc_loglik_for_hypothetical_contam_level
@@ -210,6 +220,7 @@ mod tests {
         #[case] hypothetical_contamination_level: f64,
         #[case] expected_out: f64,
         #[case] zygosity: Zygosity,
+        #[case] label: String,
     ) {
         let variant = VariantPosition::new(
             "X",
@@ -222,6 +233,7 @@ mod tests {
         .unwrap();
         let p = calaulate_loglik_for_variant_position(&variant, hypothetical_contamination_level).unwrap();
         assert_approx_eq!(p.loglik.unwrap(), expected_out);
+        assert_eq!(p.label, label);
     }
 
     #[rstest]
