@@ -21,9 +21,29 @@ pub enum Zygosity {
     HETEROZYGOUS,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Hypothesis {
     pub label: String,
     pub variant_fraction: f64,
+    pub loglik: Option<f64>,
+}
+
+impl Hypothesis {
+    pub fn new(label: String, variant_fraction: f64) -> Result<Hypothesis, String> {
+        if variant_fraction >= 0.0 && variant_fraction <= 1.0 {
+            Ok(Self {
+                label,
+                variant_fraction,
+                loglik: None,
+            })
+        } else {
+            Err("variant_fraction must be between 0 and 1".to_string())
+        }
+    }
+
+    pub fn set_loglik (&mut self, loglik: f64){
+        self.loglik = Some(loglik);
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -117,5 +137,15 @@ mod tests {
             Zygosity::HETEROZYGOUS,
         )
         .unwrap();
+    }
+
+    #[test]
+    fn test_hypothesis(){
+        let mut hyp = Hypothesis::new(
+            "test_hyp".to_string(),
+            0.1,
+        ).unwrap();
+        hyp.set_loglik(0.2);
+        assert_eq!(hyp.loglik, Some(0.2));
     }
 }

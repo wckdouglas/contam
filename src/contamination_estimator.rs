@@ -1,4 +1,4 @@
-use crate::model::{VariantPosition, VariantType, Zygosity, Hypothesis};
+use crate::model::{Hypothesis, VariantPosition, VariantType, Zygosity};
 use rayon::prelude::*;
 use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
@@ -54,35 +54,43 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
 ) -> Result<f64, String> {
-    let contamination_hypotheses: Vec<Hypothesis> = vec![
-        Hypothesis{
-            label: "contam is not ref/alt".to_string(), 
-            variant_fraction: (1.0 - hypothetical_contamination_level) / 2.0
-        }, // low AF in HET ALT because of contam doesn't look like ref or alt
-        Hypothesis{
-            label: "contam called as alt".to_string(), 
-            variant_fraction: (1.0 - hypothetical_contamination_level)
-        }, // this is when a HOM being called as HET because of contam
-        Hypothesis{
-            label: "contam looks like het-alt at hom-alt position".to_string(), 
-            variant_fraction: (0.5 + hypothetical_contamination_level)
-        }, // this is when contam looks like ALT
-        Hypothesis{
-            label: "contam looks like ref".to_string(),
-            variant_fraction: (0.5 - hypothetical_contamination_level)
-        }, // this is when contam looks like REF
-        Hypothesis{
-            label: "contam looks like het-alt at hom-ref position".to_string(), 
-            variant_fraction: hypothetical_contamination_level
-        },         // this is when the contam is being called as het
+    let mut contamination_hypotheses: Vec<Hypothesis> = vec![
+        Hypothesis::new (
+            "contam is not ref/alt".to_string(),
+            (1.0 - hypothetical_contamination_level) / 2.0,
+        )?, // low AF in HET ALT because of contam doesn't look like ref or alt
+        Hypothesis::new(
+            "contam called as alt".to_string(),
+            1.0 - hypothetical_contamination_level,
+        )?, // this is when a HOM being called as HET because of contam
+        Hypothesis::new (
+            "contam looks like het-alt at hom-alt position".to_string(),
+            0.5 + hypothetical_contamination_level,
+        )?, // this is when contam looks like ALT
+        Hypothesis::new (
+            "contam looks like ref".to_string(),
+            0.5 - hypothetical_contamination_level,
+        )?, // this is when contam looks like REF
+        Hypothesis::new (
+            "contam looks like het-alt at hom-ref position".to_string(),
+            hypothetical_contamination_level,
+        )?, // this is when the contam is being called as het
     ];
-    let max_log_prob = contamination_hypotheses
-        .into_iter()
+    let best_hypothesis = contamination_hypotheses
+        .iter_mut()
         .map(|contam_hypothesis| {
-            calc_loglik_for_hypothetical_contam_level(variant_position, contam_hypothesis.variant_fraction).unwrap()
+            let loglik = calc_loglik_for_hypothetical_contam_level(
+                variant_position,
+                contam_hypothesis.variant_fraction,
+            )
+            .unwrap();
+            contam_hypothesis.set_loglik(loglik);
+            contam_hypothesis
         })
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .max_by(|a, b| a.loglik.partial_cmp(&b.loglik).unwrap())
         .ok_or("MAX is not found in the loglik calculation")?;
+    
+    let max_log_prob = best_hypothesis.loglik.ok_or("no loglik calculated")?;
     Ok(max_log_prob)
 }
 
