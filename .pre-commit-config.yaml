@@ -15,3 +15,5 @@ repos:
     hooks:
     -   id: fmt
         args: ['--verbose', '--']
+    -   id: clippy
+        args: ['--verbose']
