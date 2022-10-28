@@ -18,6 +18,7 @@ use std::vec::Vec;
 use vcfreader::build_variant_list;
 
 const MAX_CONTAM: usize = 400; // should be 0.399 because we divide 1000
+const DECIMAL_PLACE: f64 = 0.001; // how precise we want for the contamination level
 
 /// write string to file
 ///
@@ -72,9 +73,8 @@ pub fn run(
 
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result
-    let mut best_guess_contam_level: f64 = 0.0; // initialize the final contamination level variable
-    let mut max_log_likelihood: f64 = 1.0; // initialize something so that we can track the running max log prob
-    for hypothetical_contamination_level in (1..MAX_CONTAM).map(|x| x as f64 * 0.001) {
+    let mut best_guess: Option<ContamProbResult> = None;
+    for hypothetical_contamination_level in (1..MAX_CONTAM).map(|x| x as f64 * DECIMAL_PLACE) {
         // loop over the hypothetical contamination level
         // and calculate the log likelihood
         let log_prob: f64 =
@@ -88,13 +88,15 @@ pub fn run(
         // and put them in to a result array
         result_vector.push(output);
 
-        if max_log_likelihood > 0.0 || max_log_likelihood < log_prob {
-            // if there's a high likelihood contamination level,
-            // keep it!
-            best_guess_contam_level = hypothetical_contamination_level;
-            max_log_likelihood = log_prob;
+        if best_guess.is_none() {
+            best_guess = Some(output);
+        } else if output.log_likelihood > best_guess.unwrap().log_likelihood {
+            best_guess = Some(output);
         }
     }
+    let best_guess_contam_level = best_guess
+        .ok_or("No best guess contam object")?
+        .contamination_level;
 
     if prob_json.is_some() {
         // write result json file

@@ -46,7 +46,7 @@ impl Hypothesis {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 /// A struct to hold the contamination estimation result
 pub struct ContamProbResult {
     /// for the given contamination level
