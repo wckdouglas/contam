@@ -5,11 +5,9 @@ pub mod model;
 pub mod vcfreader;
 
 use bedreader::read_bed;
-use cli::parse_args;
 use contamination_estimator::calculate_contam_hypothesis;
 use log::info;
 use model::{ContamProbResult, VariantPosition};
-use serde_json::json;
 use std::fs::File;
 use std::io::Write;
 use std::option::Option;
@@ -22,9 +20,9 @@ const DECIMAL_PLACE: f64 = 0.001; // how precise we want for the contamination l
 
 /// write string to file
 ///
-/// Arguments:
-/// - filename: the file name of the new file to be written to
-/// - json_string: String to be written to the file
+/// # Arguments:
+/// * `filename`: the file name of the new file to be written to
+/// * `json_string`: String to be written to the file
 pub fn write_json(filename: &str, json_string: String) -> Result<(), String> {
     let mut output_file = File::create(filename).map_err(|e| e.to_string())?;
     write!(output_file, "{}", json_string).unwrap();
@@ -74,7 +72,8 @@ pub fn run(
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result
     let mut best_guess: Option<ContamProbResult> = None;
-    for hypothetical_contamination_level in (1..MAX_CONTAM).map(|x| x as f64 * DECIMAL_PLACE) {
+    let contamination_range_to_evaluate = (1..MAX_CONTAM).map(|x| x as f64 * DECIMAL_PLACE);
+    for hypothetical_contamination_level in contamination_range_to_evaluate {
         // loop over the hypothetical contamination level
         // and calculate the log likelihood
         let log_prob: f64 =
@@ -88,6 +87,9 @@ pub fn run(
         // and put them in to a result array
         result_vector.push(output);
 
+        // evaluate whether the newly computed result
+        // is better than the previous best one?
+        // We will always keep the better guess
         match best_guess {
             None => {
                 best_guess = Some(output);
@@ -103,6 +105,7 @@ pub fn run(
         .ok_or("No best guess contam object")?
         .contamination_level;
 
+    // just writing out the result/intermediate files
     if prob_json.is_some() {
         // write result json file
         let json_string =
@@ -124,51 +127,6 @@ pub fn run(
     }
 
     Ok(best_guess_contam_level)
-}
-
-pub fn wrapper() -> Result<i8, String> {
-    let args = parse_args();
-    let vcf_file: &str = args.value_of::<&str>("in_vcf").unwrap();
-    let prob_json: Option<&str> = args.value_of::<&str>("debug_json");
-    let out_json: Option<&str> = args.value_of::<&str>("out_json");
-    let variant_json: Option<&str> = args.value_of::<&str>("debug_variant_json");
-    let loci_bed: Option<&str> = args.value_of::<&str>("loci_bed");
-    let depth_threshold: usize = args
-        .value_of::<&str>("depth_threshold")
-        .unwrap_or("0")
-        .to_string()
-        .parse::<usize>()
-        .unwrap();
-    let snv_only_flag: bool = args.is_present("snv_only");
-
-    let best_guess_contam_level: f64 = run(
-        vcf_file,
-        loci_bed,
-        snv_only_flag,
-        depth_threshold,
-        prob_json,
-        variant_json,
-    )?;
-    info!(
-        "Maximum likelihood contamination level: {}",
-        best_guess_contam_level
-    );
-
-    if out_json.is_some() {
-        let out_json_file = out_json.ok_or("JSON filename is not given")?;
-        let json_data = json!(
-            {
-                "vcf_file": vcf_file,
-                "contamination_percentage": best_guess_contam_level * 100.0,
-            }
-        );
-        write_json(
-            out_json_file,
-            serde_json::to_string_pretty(&json_data).map_err(|e| e.to_string())?,
-        )?;
-        info!("Written result json at: {}", out_json_file);
-    }
-    Ok(0)
 }
 
 #[cfg(test)]
