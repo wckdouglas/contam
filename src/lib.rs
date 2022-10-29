@@ -74,7 +74,8 @@ pub fn run(
     // using variants as input to estimate contamination
     let mut result_vector: Vec<ContamProbResult> = Vec::with_capacity(MAX_CONTAM); // initialize a result array to store all result
     let mut best_guess: Option<ContamProbResult> = None;
-    for hypothetical_contamination_level in (1..MAX_CONTAM).map(|x| x as f64 * DECIMAL_PLACE) {
+    let contamination_range_to_evaluate = (1..MAX_CONTAM).map(|x| x as f64 * DECIMAL_PLACE);
+    for hypothetical_contamination_level in contamination_range_to_evaluate {
         // loop over the hypothetical contamination level
         // and calculate the log likelihood
         let log_prob: f64 =

@@ -62,7 +62,7 @@ pub fn calc_loglik_for_hypothetical_contam_level(
 ///
 /// # Returns
 /// * the best hypothesis with the maximum log probability of seeing the given alt depth (across all the tested hypotheses)
-fn calc_loglik_for_hypothetical_contam_level_heterozygous(
+pub fn calc_loglik_for_hypothetical_contam_level_heterozygous(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
 ) -> Result<Hypothesis, String> {
@@ -113,7 +113,7 @@ fn calc_loglik_for_hypothetical_contam_level_heterozygous(
 /// # Returns
 ///
 /// the best hypothesis with the highest log probability of seeing the given variant alt coutn
-fn calaulate_loglik_for_variant_position(
+pub fn calaulate_loglik_for_variant_position(
     variant_position: &VariantPosition,
     hypothetical_contamination_level: f64,
 ) -> Result<Hypothesis, String> {
