@@ -172,17 +172,22 @@ pub fn calculate_contam_hypothesis(
         return Err("Contamination level must be > 0 and <= 1".to_string());
     }
 
-    let log_prob_list = variant_list.par_iter_mut().map(|variant_position| {
-        let hyp = calaulate_loglik_for_variant_position(
-            variant_position,
-            hypothetical_contamination_level,
-        )?;
-        // transferring the contamination label to the VariantPosition object
-        variant_position.set_contamination_label(hyp.label);
-        hyp.loglik
-            .ok_or_else(|| "loglik not calculated".to_string())
-    });
-    let log_prob_sum = log_prob_list.sum::<Result<f64, String>>()?;
+    // parallel processing of the variant list
+    let log_prob_sum = variant_list
+        .par_iter_mut()
+        .map(|variant_position| {
+            // first calculate the best hypothesis and it's respective log likelihood
+            // for the given contamination level
+            let hyp = calaulate_loglik_for_variant_position(
+                variant_position,
+                hypothetical_contamination_level,
+            )?;
+            // transferring the contamination label to the VariantPosition object
+            variant_position.set_contamination_label(hyp.label);
+            hyp.loglik
+                .ok_or_else(|| "loglik not calculated".to_string())
+        })
+        .sum::<Result<f64, String>>()?;
     Ok(log_prob_sum)
 }
 
