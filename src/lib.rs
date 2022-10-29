@@ -20,9 +20,9 @@ const DECIMAL_PLACE: f64 = 0.001; // how precise we want for the contamination l
 
 /// write string to file
 ///
-/// Arguments:
-/// - filename: the file name of the new file to be written to
-/// - json_string: String to be written to the file
+/// # Arguments:
+/// * `filename`: the file name of the new file to be written to
+/// * `json_string`: String to be written to the file
 pub fn write_json(filename: &str, json_string: String) -> Result<(), String> {
     let mut output_file = File::create(filename).map_err(|e| e.to_string())?;
     write!(output_file, "{}", json_string).unwrap();
