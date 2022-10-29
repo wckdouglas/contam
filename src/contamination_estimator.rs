@@ -1,16 +1,19 @@
 use crate::model::{Hypothesis, VariantPosition, Zygosity};
+use lazy_static::lazy_static;
 use rayon::prelude::*;
 use statrs::distribution::{Binomial, Discrete};
 use std::vec::Vec;
 
-const HYPOTHESES: [&str; 6] = [
-    "homozygous",
-    "contam is not ref nor alt",
-    "contam is called as alt",
-    "contam looks like het-alt at hom-alt position",
-    "contam comes from a ref-allele",
-    "contam looks like het-alt at hom-ref position",
-];
+lazy_static! {
+    static ref HYPOTHESES: [&'static str; 6] = [
+        "homozygous",
+        "contam is not ref nor alt",
+        "contam is called as alt",
+        "contam looks like het-alt at hom-alt position",
+        "contam comes from a ref-allele",
+        "contam looks like het-alt at hom-ref position",
+    ];
+}
 
 /// Calculate log probability of seeing a number of alt calls
 /// at some read depth for a given contamination level
