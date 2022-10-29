@@ -88,6 +88,9 @@ pub fn run(
         // and put them in to a result array
         result_vector.push(output);
 
+        // evaluate whether the newly computed result
+        // is better than the previous best one?
+        // We will always keep the better guess
         match best_guess {
             None => {
                 best_guess = Some(output);
@@ -103,6 +106,7 @@ pub fn run(
         .ok_or("No best guess contam object")?
         .contamination_level;
 
+    // just writing out the result/intermediate files
     if prob_json.is_some() {
         // write result json file
         let json_string =
