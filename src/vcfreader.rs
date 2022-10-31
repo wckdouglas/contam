@@ -60,7 +60,7 @@ fn filter_variants(
             let ref_base = record.reference_bases();
             let alt_base = &record.alternate_bases()[alt_genotype - 1];
             let alt_depth = allele_depths[alt_genotype]
-                .expect("Alt allele depth is unavaliable (AD tag)")
+                .ok_or("Alt allele depth is unavaliable (AD tag)".to_string())?
                 as usize;
 
             let mut variant_type: VariantType = VariantType::INDEL;
@@ -77,7 +77,7 @@ fn filter_variants(
                 return Ok(Some(
                     VariantPosition::new(
                         &record.chromosome().to_string(),
-                        usize::try_from(record.position()).unwrap(),
+                        usize::try_from(record.position()).map_err(|e| e.to_string())?,
                         read_depth as usize, // only sample in the vcf
                         alt_depth,
                         variant_type,
