@@ -46,9 +46,10 @@ fn filter_variants(
                 _ => bad_vec,
             };
             // Genotyping sample
-            let gt = sample_genotype.genotype().unwrap().unwrap();
-            let ref_genotype = gt[0].position().unwrap();
-            let alt_genotype = gt[1].position().unwrap();
+            let gt_field = sample_genotype.genotype().ok_or("genotype not found".to_string())?;
+            let gt = gt_field.map_err(|e| e.to_string())?;
+            let ref_genotype = gt[0].position().ok_or("ref genotype not found".to_string())?;
+            let alt_genotype = gt[1].position().ok_or("alt genotype not found".to_string())?;
 
             let mut zygosity = Zygosity::HOMOZYGOUS;
             if ref_genotype != alt_genotype {
