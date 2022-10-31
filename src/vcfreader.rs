@@ -9,8 +9,8 @@ use noodles_vcf::record::genotypes::genotype::field::Value::{Integer, IntegerArr
 use noodles_vcf::record::Record;
 use std::fs::{metadata, File};
 use std::io::BufReader;
-use std::vec::Vec;
 use std::string::String;
+use std::vec::Vec;
 
 /// Evaluate a vcf record and determine whether it should be collected
 /// for estimating contamination
@@ -30,26 +30,45 @@ fn filter_variants(
     snv_only_flag: bool,
 ) -> Result<Option<VariantPosition>, String> {
     // no filter means PASS
-    if record.filters().unwrap_or(&Filters::Pass).eq(&Filters::Pass) {
+    if record
+        .filters()
+        .unwrap_or(&Filters::Pass)
+        .eq(&Filters::Pass)
+    {
         // only look at pass filter variants
 
-        let sample_genotype = record.genotypes().get(0).ok_or("Error out Alelle 1".to_string())?;
-        let read_depth = match sample_genotype[&Key::ReadDepth].value().ok_or("No DP tag?".to_string())? {
+        let sample_genotype = record
+            .genotypes()
+            .get(0)
+            .ok_or_else(|| "Error out Alelle 1".to_string())?;
+        let read_depth = match sample_genotype[&Key::ReadDepth]
+            .value()
+            .ok_or_else(|| "No DP tag?".to_string())?
+        {
             Integer(n) => *n,
             _ => 0,
         };
 
         if read_depth >= depth_threshold as i32 {
             let bad_vec = &vec![None];
-            let allele_depths = match sample_genotype[&Key::ReadDepths].value().ok_or("No AD tag".to_string())? {
+            let allele_depths = match sample_genotype[&Key::ReadDepths]
+                .value()
+                .ok_or_else(|| "No AD tag".to_string())?
+            {
                 IntegerArray(n) => n,
                 _ => bad_vec,
             };
             // Genotyping sample
-            let gt_field = sample_genotype.genotype().ok_or("genotype not found".to_string())?;
+            let gt_field = sample_genotype
+                .genotype()
+                .ok_or_else(|| "genotype not found".to_string())?;
             let gt = gt_field.map_err(|e| e.to_string())?;
-            let ref_genotype = gt[0].position().ok_or("ref genotype not found".to_string())?;
-            let alt_genotype = gt[1].position().ok_or("alt genotype not found".to_string())?;
+            let ref_genotype = gt[0]
+                .position()
+                .ok_or_else(|| "ref genotype not found".to_string())?;
+            let alt_genotype = gt[1]
+                .position()
+                .ok_or_else(|| "alt genotype not found".to_string())?;
 
             let mut zygosity = Zygosity::HOMOZYGOUS;
             if ref_genotype != alt_genotype {
@@ -60,7 +79,7 @@ fn filter_variants(
             let ref_base = record.reference_bases();
             let alt_base = &record.alternate_bases()[alt_genotype - 1];
             let alt_depth = allele_depths[alt_genotype]
-                .ok_or("Alt allele depth is unavaliable (AD tag)".to_string())?
+                .ok_or_else(|| "Alt allele depth is unavaliable (AD tag)".to_string())?
                 as usize;
 
             let mut variant_type: VariantType = VariantType::INDEL;
@@ -146,7 +165,8 @@ pub fn build_variant_list(
                                 &record.map_err(|e| e.to_string())?,
                                 depth_threshold,
                                 snv_only_flag,
-                            ).unwrap();
+                            )
+                            .unwrap();
                             if variant.is_some() {
                                 variant_list.push(variant.ok_or("No variant")?);
                             }
@@ -178,7 +198,9 @@ pub fn build_variant_list(
                 reader
                     .records(&header)
                     .map(|result| result.expect("Cannot read vcf record"))
-                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag).unwrap()),
+                    .filter_map(|record| {
+                        filter_variants(&record, depth_threshold, snv_only_flag).unwrap()
+                    }),
             );
             variant_list.append(&mut variants);
             Ok(0)
@@ -201,7 +223,9 @@ pub fn build_variant_list(
                 reader
                     .records(&header)
                     .map(|result| result.expect("Cannot read vcf record"))
-                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag).unwrap()),
+                    .filter_map(|record| {
+                        filter_variants(&record, depth_threshold, snv_only_flag).unwrap()
+                    }),
             );
             variant_list.append(&mut variants);
             Ok(0)
