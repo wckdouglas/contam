@@ -10,6 +10,7 @@ use noodles_vcf::record::Record;
 use std::fs::{metadata, File};
 use std::io::BufReader;
 use std::vec::Vec;
+use std::string::String;
 
 /// Evaluate a vcf record and determine whether it should be collected
 /// for estimating contamination
@@ -27,19 +28,20 @@ fn filter_variants(
     record: &Record,
     depth_threshold: usize,
     snv_only_flag: bool,
-) -> Option<VariantPosition> {
-    if record.filters().is_none() || record.filters().unwrap().eq(&Filters::Pass) {
+) -> Result<Option<VariantPosition>, String> {
+    // no filter means PASS
+    if record.filters().unwrap_or(&Filters::Pass).eq(&Filters::Pass) {
         // only look at pass filter variants
 
-        let sample_genotype = record.genotypes().get(0).expect("Error out Alelle 1");
-        let read_depth = match sample_genotype[&Key::ReadDepth].value().expect("DP tag") {
+        let sample_genotype = record.genotypes().get(0).ok_or("Error out Alelle 1".to_string())?;
+        let read_depth = match sample_genotype[&Key::ReadDepth].value().ok_or("No DP tag?".to_string())? {
             Integer(n) => *n,
             _ => 0,
         };
 
         if read_depth >= depth_threshold as i32 {
             let bad_vec = &vec![None];
-            let allele_depths = match sample_genotype[&Key::ReadDepths].value().expect("AD tag") {
+            let allele_depths = match sample_genotype[&Key::ReadDepths].value().ok_or("No AD tag".to_string())? {
                 IntegerArray(n) => n,
                 _ => bad_vec,
             };
@@ -71,7 +73,7 @@ fn filter_variants(
             if !snv_only_flag || variant_type == VariantType::SNV {
                 // whether we want snv-only or not
                 // make a new VariantPosition here and put into the list
-                return Some(
+                return Ok(Some(
                     VariantPosition::new(
                         &record.chromosome().to_string(),
                         usize::try_from(record.position()).unwrap(),
@@ -81,11 +83,11 @@ fn filter_variants(
                         zygosity,
                     )
                     .expect("Variant record cannot be converted to VariantPosition"),
-                );
+                ));
             }
         }
     }
-    None
+    Ok(None)
 }
 
 /// Colelcting variants from a vcf file
@@ -143,7 +145,7 @@ pub fn build_variant_list(
                                 &record.map_err(|e| e.to_string())?,
                                 depth_threshold,
                                 snv_only_flag,
-                            );
+                            ).unwrap();
                             if variant.is_some() {
                                 variant_list.push(variant.ok_or("No variant")?);
                             }
@@ -175,7 +177,7 @@ pub fn build_variant_list(
                 reader
                     .records(&header)
                     .map(|result| result.expect("Cannot read vcf record"))
-                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag)),
+                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag).unwrap()),
             );
             variant_list.append(&mut variants);
             Ok(0)
@@ -198,7 +200,7 @@ pub fn build_variant_list(
                 reader
                     .records(&header)
                     .map(|result| result.expect("Cannot read vcf record"))
-                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag)),
+                    .filter_map(|record| filter_variants(&record, depth_threshold, snv_only_flag).unwrap()),
             );
             variant_list.append(&mut variants);
             Ok(0)
